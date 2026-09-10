@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { apiFetch, ApiError } from "@/lib/api-client";
 
-export default function VerifyEmailPage() {
+function VerifyEmailInner() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
   const [status, setStatus] = useState<"loading" | "done" | "error">("loading");
@@ -47,5 +47,19 @@ export default function VerifyEmailPage() {
         Go to dashboard
       </Link>
     </main>
+  );
+}
+
+export default function VerifyEmailPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-12 text-center">
+          <p className="text-sm text-muted">Loading…</p>
+        </main>
+      }
+    >
+      <VerifyEmailInner />
+    </Suspense>
   );
 }

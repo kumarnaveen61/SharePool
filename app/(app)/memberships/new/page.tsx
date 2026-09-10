@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Field, Input, Select, Textarea } from "@/components/ui/Input";
@@ -48,6 +48,14 @@ const ELIGIBILITY_OPTIONS = [
 ];
 
 export default function NewMembershipPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-muted">Loading…</p>}>
+      <NewMembershipForm />
+    </Suspense>
+  );
+}
+
+function NewMembershipForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const groupId = searchParams.get("groupId") ?? "";
