@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+  --background: #11141A;
+  --surface: #181C24;
+  --card: #1E232C;
+  --border: #2A303B;
+  --ink: #EDEFF3;
+  --muted: #8B93A3;
+  --gold: #D9A441;
+  --gold-dark: #B8862E;
+  --teal: #3FD6B0;
+  --teal-bg: #0F2C26;
+  --amber-bg: #332714;
+  --red: #E2574C;
+  --red-bg: #331616;
+
+  --brand: #D9A441;
+  --brand-dark: #B8862E;
+  --accent: #3FD6B0;
+  --accent-dark: #2FAE8E;
+  --danger: #E2574C;
+  --success: #3FD6B0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-card: var(--card);
+  --color-border: var(--border);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-gold: var(--gold);
+  --color-gold-dark: var(--gold-dark);
+  --color-teal: var(--teal);
+  --color-teal-bg: var(--teal-bg);
+  --color-amber-bg: var(--amber-bg);
+  --color-red: var(--red);
+  --color-red-bg: var(--red-bg);
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-accent: var(--accent);
+  --color-accent-dark: var(--accent-dark);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --font-sans: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--background);
+  color: var(--ink);
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  border-color: var(--border);
+}
