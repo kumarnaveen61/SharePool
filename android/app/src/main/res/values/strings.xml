@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">SharePool</string>
+    <string name="title_activity_main">SharePool</string>
+    <string name="package_name">com.kumarnaveen61.sharepool</string>
+    <string name="custom_url_scheme">com.kumarnaveen61.sharepool</string>
+</resources>

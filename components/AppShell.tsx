@@ -4,9 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { apiFetch } from "@/lib/api-client";
-import { NotificationBell } from "./NotificationBell";
 import { BrandLogo } from "./BrandLogo";
-
+import { NotificationBell } from "./NotificationBell";
 
 const NAV_ITEMS = [
   {
@@ -69,7 +68,7 @@ function AdminTab() {
   return (
     <Link
       href="/platform/groups"
-      className="flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold text-muted transition-colors hover:text-ink"
+      className="flex shrink-0 items-center gap-2 rounded-full px-3.5 py-2.5 text-[13px] font-semibold text-muted transition-colors hover:text-ink md:px-4 md:text-sm"
     >
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -83,12 +82,10 @@ function AdminTab() {
       >
         <path d="M12 2 4 6v6c0 5 3.5 9.5 8 10 4.5-.5 8-5 8-10V6z" />
       </svg>
-      Admin
+      <span className="hidden sm:inline">Admin</span>
     </Link>
   );
 }
-
-
 
 function VerificationBanner() {
   const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
@@ -114,13 +111,17 @@ function VerificationBanner() {
   if (emailVerified !== false) return null;
 
   return (
-    <div className="border-b border-gold/30 bg-amber-bg px-6 py-2 text-center text-xs text-gold">
+    <div className="border-b border-gold/30 bg-amber-bg px-4 py-2 text-center text-[11px] text-gold sm:px-6 sm:text-xs">
       {sent ? (
         "Verification link sent — check the server log (no email provider is connected in this demo)."
       ) : (
         <>
           Please verify your email.{" "}
-          <button onClick={resend} disabled={sending} className="font-medium underline">
+          <button
+            onClick={resend}
+            disabled={sending}
+            className="font-medium underline"
+          >
             Resend link
           </button>
         </>
@@ -141,87 +142,96 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background text-ink">
-      {/* Fixed top bar with brand left, pill nav right */}
+      {/* Fixed top bar */}
       <div
-        className="fixed inset-x-0 top-0 z-50 flex items-center justify-between px-6 py-4 sm:px-10"
+        className="fixed inset-x-0 top-0 z-50 px-4 py-3 sm:px-10 sm:py-4"
         style={{
           background:
-            "linear-gradient(to bottom, rgba(17,20,26,0.92) 0%, rgba(17,20,26,0) 100%)",
+            "linear-gradient(to bottom, rgba(17,20,26,0.96) 0%, rgba(17,20,26,0.85) 70%, rgba(17,20,26,0) 100%)",
         }}
       >
-        <Link href="/dashboard" className="flex items-center gap-2.5">
-  <BrandLogo size={32} />
-  <span className="text-lg font-extrabold tracking-tight">SharePool</span>
-</Link>
-        {/* Pill navigation */}
-        <div
-          className="hidden items-center gap-1 rounded-full border border-white/10 p-1.5 md:flex"
-          style={{
-            background: "rgba(30,35,44,0.85)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
-          }}
-        >
-          {NAV_ITEMS.map((item) => {
-            const isActive =
-              item.href === "/dashboard"
-                ? pathname === "/dashboard"
-                : pathname.startsWith(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-colors [&>svg]:h-[18px] [&>svg]:w-[18px] ${
-                  isActive
-                    ? "bg-white text-[#111]"
-                    : "text-muted hover:text-ink"
-                }`}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-
-          <AdminTab />
-          <NotificationBell />
-          <div className="mx-1.5 h-6 w-px bg-white/10" />
-
-          <Link
-            href="/memberships"
-            aria-label="Search"
-            className="flex items-center rounded-full px-3 py-2.5 text-muted transition-colors hover:text-ink [&>svg]:h-[18px] [&>svg]:w-[18px]"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
+        {/* Row 1: brand + sign out */}
+        <div className="flex items-center justify-between gap-3">
+          <Link href="/dashboard" className="flex shrink-0 items-center gap-2.5">
+            <BrandLogo size={32} />
+            <span className="text-lg font-extrabold tracking-tight">
+              SharePool
+            </span>
           </Link>
 
-          <Link
-            href="/profile"
-            aria-label="Settings"
-            className="flex items-center rounded-full px-3 py-2.5 text-muted transition-colors hover:text-ink [&>svg]:h-[18px] [&>svg]:w-[18px]"
+          <button
+            onClick={handleLogout}
+            className="rounded-xl border border-border px-3 py-1.5 text-[11px] font-bold text-muted transition-colors hover:border-red/30 hover:text-red md:hidden"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3" />
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
-          </Link>
+            Sign out
+          </button>
         </div>
 
-        {/* Mobile fallback: just sign-out */}
-        <button
-          onClick={handleLogout}
-          className="text-sm font-medium text-muted hover:text-ink md:hidden"
-        >
-          Sign out
-        </button>
+        {/* Row 2: pill nav — scrollable on mobile, inline on desktop */}
+        <div className="mt-3 flex md:mt-3 md:justify-end">
+          <div
+            className="no-scrollbar flex w-full items-center gap-0.5 overflow-x-auto rounded-full border border-white/10 p-1.5 md:w-auto"
+            style={{
+              background: "rgba(30,35,44,0.9)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+            }}
+          >
+            {NAV_ITEMS.map((item) => {
+              const isActive =
+                item.href === "/dashboard"
+                  ? pathname === "/dashboard"
+                  : pathname.startsWith(item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex shrink-0 items-center gap-2 rounded-full px-3.5 py-2.5 text-[13px] font-semibold transition-colors [&>svg]:h-[18px] [&>svg]:w-[18px] md:px-4 md:text-sm ${
+                    isActive
+                      ? "bg-white text-[#111]"
+                      : "text-muted hover:text-ink"
+                  }`}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+
+            <AdminTab />
+
+            <NotificationBell />
+
+            <div className="mx-1.5 h-6 w-px shrink-0 bg-white/10" />
+
+            <Link
+              href="/memberships"
+              aria-label="Search"
+              className="flex shrink-0 items-center rounded-full px-3 py-2.5 text-muted transition-colors hover:text-ink [&>svg]:h-[18px] [&>svg]:w-[18px]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+            </Link>
+
+            <Link
+              href="/profile"
+              aria-label="Settings"
+              className="flex shrink-0 items-center rounded-full px-3 py-2.5 text-muted transition-colors hover:text-ink [&>svg]:h-[18px] [&>svg]:w-[18px]"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="3" />
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+              </svg>
+            </Link>
+          </div>
+        </div>
       </div>
 
       <VerificationBanner />
 
-      <main className="mx-auto max-w-5xl px-6 pb-20 pt-28 sm:px-10">
+      <main className="mx-auto max-w-5xl px-4 pb-20 pt-40 sm:px-6 md:pt-32 lg:px-10">
         {children}
       </main>
     </div>

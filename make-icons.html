@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SharePool — Icon Generator</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #11141A;
+    color: #EDEFF3;
+    font-family: -apple-system, system-ui, "Segoe UI", sans-serif;
+    padding: 40px 24px;
+  }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  h1 { font-size: 28px; font-weight: 800; margin: 0 0 8px; letter-spacing: -0.02em; }
+  .sub { color: #8B93A3; font-size: 14px; margin: 0 0 32px; }
+  .notice {
+    background: #332714;
+    border: 1px solid rgba(217,164,65,0.25);
+    border-radius: 14px;
+    padding: 14px 18px;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #D9A441;
+    margin-bottom: 32px;
+  }
+  .notice code {
+    background: rgba(0,0,0,0.4);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    color: #F3BD42;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: #1E232C;
+    border: 1px solid #2A303B;
+    border-radius: 18px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .card h2 {
+    font-size: 15px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .card .meta {
+    font-size: 11px;
+    color: #8B93A3;
+    font-family: ui-monospace, monospace;
+  }
+  .preview {
+    display: grid;
+    place-items: center;
+    background: #11141A;
+    border-radius: 12px;
+    padding: 20px;
+    min-height: 200px;
+    overflow: hidden;
+  }
+  .preview canvas {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  .preview.transparent {
+    background-image:
+      linear-gradient(45deg, #1a1e26 25%, transparent 25%),
+      linear-gradient(-45deg, #1a1e26 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #1a1e26 75%),
+      linear-gradient(-45deg, transparent 75%, #1a1e26 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  }
+  button {
+    background: #D9A441;
+    color: #1A1300;
+    border: 0;
+    border-radius: 12px;
+    padding: 12px 18px;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background .15s;
+  }
+  button:hover { background: #B8862E; }
+  button:active { transform: translateY(1px); }
+  button.full { width: 100%; }
+  .all {
+    margin-top: 32px;
+    background: #0F2C26;
+    border: 1px solid rgba(63,214,176,0.25);
+    border-radius: 14px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .all p { margin: 0; font-size: 13px; color: #3FD6B0; }
+  .all strong { color: #EDEFF3; font-weight: 800; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>SharePool — Icon Generator</h1>
+  <p class="sub">Click the buttons below to download the PNG files. Save each to the <code>assets/</code> folder in your project.</p>
+
+  <div class="notice">
+    <strong>Instructions:</strong><br>
+    1. Create a folder called <code>assets/</code> in your project root (same level as <code>package.json</code>).<br>
+    2. Download all four PNGs below.<br>
+    3. Move them into <code>assets/</code> with the exact filenames shown.<br>
+    4. Run <code>npx @capacitor/assets generate --android</code> in your terminal.
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <h2>icon.png</h2>
+      <div class="meta">1024 × 1024 · dark bg</div>
+      <div class="preview"><canvas id="c-icon" width="1024" height="1024"></canvas></div>
+      <button class="full" onclick="dl('c-icon', 'icon.png')">Download icon.png</button>
+    </div>
+
+    <div class="card">
+      <h2>icon-foreground.png</h2>
+      <div class="meta">1024 × 1024 · transparent</div>
+      <div class="preview transparent"><canvas id="c-fg" width="1024" height="1024"></canvas></div>
+      <button class="full" onclick="dl('c-fg', 'icon-foreground.png')">Download icon-foreground.png</button>
+    </div>
+
+    <div class="card">
+      <h2>icon-background.png</h2>
+      <div class="meta">1024 × 1024 · solid color</div>
+      <div class="preview"><canvas id="c-bg" width="1024" height="1024"></canvas></div>
+      <button class="full" onclick="dl('c-bg', 'icon-background.png')">Download icon-background.png</button>
+    </div>
+
+    <div class="card">
+      <h2>splash.png</h2>
+      <div class="meta">2732 × 2732 · logo + wordmark</div>
+      <div class="preview"><canvas id="c-splash" width="2732" height="2732" style="max-height:220px;"></canvas></div>
+      <button class="full" onclick="dl('c-splash', 'splash.png')">Download splash.png</button>
+    </div>
+  </div>
+
+  <div class="all">
+    <p><strong>Or download all four at once</strong> — your browser may ask permission for multiple downloads.</p>
+    <button onclick="dlAll()">Download all 4 PNGs</button>
+  </div>
+</div>
+
+<script>
+const GOLD   = "#D9A441";
+const DARK   = "#11141A";
+
+/* ---------- SVG builders ---------- */
+
+// Just the three gold rings, transparent background
+function ringsSVG(canvasSize, logoFraction) {
+  const logo = canvasSize * logoFraction;
+  const scale = logo / 32;
+  const offset = (canvasSize - logo) / 2;
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${canvasSize}" height="${canvasSize}" viewBox="0 0 ${canvasSize} ${canvasSize}">
+      <g transform="translate(${offset} ${offset}) scale(${scale})">
+        <g fill="none" stroke="${GOLD}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="16" cy="9" r="5.5" />
+          <circle cx="9.5" cy="21" r="5.5" />
+          <circle cx="22.5" cy="21" r="5.5" />
+        </g>
+      </g>
+    </svg>
+  `;
+}
+
+// Rings on a solid background
+function iconSVG(canvasSize, logoFraction) {
+  const logo = canvasSize * logoFraction;
+  const scale = logo / 32;
+  const offset = (canvasSize - logo) / 2;
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${canvasSize}" height="${canvasSize}" viewBox="0 0 ${canvasSize} ${canvasSize}">
+      <rect width="${canvasSize}" height="${canvasSize}" fill="${DARK}" />
+      <g transform="translate(${offset} ${offset}) scale(${scale})">
+        <g fill="none" stroke="${GOLD}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="16" cy="9" r="5.5" />
+          <circle cx="9.5" cy="21" r="5.5" />
+          <circle cx="22.5" cy="21" r="5.5" />
+        </g>
+      </g>
+    </svg>
+  `;
+}
+
+// Solid background only
+function bgSVG(canvasSize) {
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${canvasSize}" height="${canvasSize}" viewBox="0 0 ${canvasSize} ${canvasSize}">
+      <rect width="${canvasSize}" height="${canvasSize}" fill="${DARK}" />
+    </svg>
+  `;
+}
+
+// Splash: dark bg + rings + "SharePool" wordmark
+function splashSVG(size) {
+  const cx = size / 2;
+  const logoSize = size * 0.20;             // ~547px
+  const logoScale = logoSize / 32;
+  const logoY = size / 2 - logoSize * 0.7;  // slightly above center
+  const logoOffset = cx - logoSize / 2;
+
+  const titleY = logoY + logoSize + size * 0.10;   // ~+273px below logo
+  const taglineY = titleY + size * 0.055;
+
+  const titleSize = size * 0.048;    // ~131px
+  const taglineSize = size * 0.019;  // ~52px
+
+  return `
+    <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <rect width="${size}" height="${size}" fill="${DARK}" />
+
+      <g transform="translate(${logoOffset} ${logoY}) scale(${logoScale})">
+        <g fill="none" stroke="${GOLD}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="16" cy="9" r="5.5" />
+          <circle cx="9.5" cy="21" r="5.5" />
+          <circle cx="22.5" cy="21" r="5.5" />
+        </g>
+      </g>
+
+      <text x="${cx}" y="${titleY}"
+            font-family="system-ui, -apple-system, 'Segoe UI', sans-serif"
+            font-size="${titleSize}"
+            font-weight="800"
+            letter-spacing="-0.02em"
+            fill="#EDEFF3"
+            text-anchor="middle">SharePool</text>
+
+      <text x="${cx}" y="${taglineY}"
+            font-family="system-ui, -apple-system, 'Segoe UI', sans-serif"
+            font-size="${taglineSize}"
+            font-weight="500"
+            fill="#8B93A3"
+            text-anchor="middle">Share what you already pay for.</text>
+    </svg>
+  `;
+}
+
+/* ---------- Rendering ---------- */
+
+function renderCanvas(canvas, svgString) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      resolve();
+    };
+    img.onerror = reject;
+    // Encode SVG safely as data URI
+    const encoded = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgString.trim());
+    img.src = encoded;
+  });
+}
+
+function dl(canvasId, filename) {
+  const canvas = document.getElementById(canvasId);
+  const link = document.createElement("a");
+  link.download = filename;
+  link.href = canvas.toDataURL("image/png");
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+async function dlAll() {
+  const order = [
+    ["c-icon",   "icon.png"],
+    ["c-fg",     "icon-foreground.png"],
+    ["c-bg",     "icon-background.png"],
+    ["c-splash", "splash.png"],
+  ];
+  for (const [id, name] of order) {
+    dl(id, name);
+    // Small delay so browser doesn't block the multi-download
+    await new Promise((r) => setTimeout(r, 400));
+  }
+}
+
+/* ---------- Boot ---------- */
+
+(async function () {
+  await renderCanvas(document.getElementById("c-icon"),   iconSVG(1024, 0.60));
+  await renderCanvas(document.getElementById("c-fg"),     ringsSVG(1024, 0.60));
+  await renderCanvas(document.getElementById("c-bg"),     bgSVG(1024));
+  await renderCanvas(document.getElementById("c-splash"), splashSVG(2732));
+})();
+</script>
+</body>
+</html>
