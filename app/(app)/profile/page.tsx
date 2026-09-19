@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/api-client";
-import { useTheme } from "@/components/ThemeToggle";
 
 type Me = {
   id: string;
