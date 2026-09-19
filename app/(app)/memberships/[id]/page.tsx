@@ -1,5 +1,6 @@
 "use client";
 
+import { ApprovedMembers, type ActiveMember } from "@/components/membership/ApprovedMembers";
 import { CredentialForm } from "@/components/credentials/CredentialForm";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -9,6 +10,7 @@ import { apiFetch, ApiError } from "@/lib/api-client";
 
 type Membership = {
   id: string;
+  publicId: string | null;
   groupId: string;
   name: string;
   category: string;
@@ -187,6 +189,7 @@ export default function MembershipDetailPage() {
     upcomingAvailability: Availability[];
     pendingRequests: AccessRequest[];
     myPendingRequest: AccessRequest | null;
+    activeMembers: ActiveMember[];
   } | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -390,6 +393,11 @@ export default function MembershipDetailPage() {
               <h1 className="text-xl font-extrabold tracking-tight">
                 {membership.name}
               </h1>
+                {membership.publicId && (
+                <div className="mt-1 inline-flex items-center gap-1.5 rounded-md bg-white/5 px-2 py-0.5 text-[10px] font-mono font-bold tracking-wider text-muted">
+                  {membership.publicId}
+                </div>
+              )}
               <p className="mt-1 text-xs text-muted">
                 {membership.planName ? `${membership.planName}, ` : ""}
                 owned by {isOwner ? "you" : ownerName}
@@ -678,6 +686,15 @@ export default function MembershipDetailPage() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* ── Owner: Approved members ───────────────────────── */}
+      {isOwner && (
+        <ApprovedMembers
+          members={data.activeMembers ?? []}
+          membershipName={membership.name}
+          onChanged={load}
+        />
       )}
 
       {/* ── Report (non-owner) ───────────────────────────── */}

@@ -95,6 +95,7 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "MEMBERSHIP_REMOVED_BY_ADMIN",
   "SUSPENDED_BY_ADMIN",
   "REMOVED_FROM_GROUP",
+  "ACCESS_REVOKED",
 ]);
 
 export const reportTargetTypeEnum = pgEnum("report_target_type", [
@@ -257,6 +258,7 @@ export const memberships = pgTable("memberships", {
   priceAmount: integer("price_amount"),
   priceCurrency: varchar("price_currency", { length: 3 }).default("INR"),
   pricePeriod: pricePeriodEnum("price_period"),
+  publicId: varchar("public_id", { length: 16 }),
   isDemo: boolean("is_demo").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
@@ -269,6 +271,7 @@ export const memberships = pgTable("memberships", {
   ownerIdx: index("memberships_owner_id_idx").on(table.ownerId),
   statusIdx: index("memberships_status_idx").on(table.status),
   categoryIdx: index("memberships_category_idx").on(table.category),
+  publicIdIdx: uniqueIndex("memberships_public_id_idx").on(table.publicId),
 }));
 
 // Availability windows an owner sets for a membership (Phase 1: simple

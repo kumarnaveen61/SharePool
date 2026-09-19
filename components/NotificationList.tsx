@@ -28,6 +28,7 @@ const ICONS: Record<string, { emoji: string }> = {
   MEMBERSHIP_REMOVED_BY_ADMIN: { emoji: "🗑️" },
   SUSPENDED_BY_ADMIN: { emoji: "⛔" },
   REMOVED_FROM_GROUP: { emoji: "👋" },
+  ACCESS_REVOKED: { emoji: "🚫" },
 };
 
 function timeAgo(iso: string) {

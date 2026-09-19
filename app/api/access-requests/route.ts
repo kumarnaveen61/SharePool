@@ -1,6 +1,11 @@
 import { logActivity } from "@/lib/activity";
 import { db } from "@/lib/db";
-import { accessRequests, memberships, users } from "@/lib/db/schema";
+import {
+  accessRequests,
+  accessSessions,
+  memberships,
+  users,
+} from "@/lib/db/schema";
 import { requireUser, requireGroupMembership } from "@/lib/auth/guards";
 import { createAccessRequestSchema } from "@/lib/validation/access-request-schemas";
 import { ok, fail, withErrorHandling } from "@/lib/api-response";
@@ -12,6 +17,7 @@ import { isBlockedEitherWay } from "@/lib/blocks";
 export const GET = withErrorHandling(async (req: Request) => {
   const session = await requireUser();
   const { searchParams } = new URL(req.url);
+
   // "incoming" = requests other members sent to something I own.
   // "outgoing" = requests I sent to someone else's membership.
   const direction = searchParams.get("direction") ?? "incoming";
@@ -62,16 +68,38 @@ export const POST = withErrorHandling(async (req: Request) => {
     return fail("MEMBERSHIP_NOT_FOUND", "Membership not found.", 404);
   }
 
-  // Caller must be in the same group as the membership.
-  await requireGroupMembership(session.userId, membership.groupId);
-
+  // Can't request access to your own membership
   if (membership.ownerId === session.userId) {
     return fail(
-      "CANNOT_REQUEST_OWN_MEMBERSHIP",
+      "OWN_MEMBERSHIP",
       "You can't request access to your own membership.",
       400
     );
   }
+
+  // Already have active access?
+  const [existingActive] = await db
+    .select({ id: accessSessions.id })
+    .from(accessSessions)
+    .where(
+      and(
+        eq(accessSessions.membershipId, data.membershipId),
+        eq(accessSessions.requesterId, session.userId),
+        eq(accessSessions.status, "ACTIVE")
+      )
+    )
+    .limit(1);
+
+  if (existingActive) {
+    return fail(
+      "ALREADY_HAS_ACCESS",
+      "You already have active access to this membership.",
+      409
+    );
+  }
+
+  // Caller must be in the same group as the membership.
+  await requireGroupMembership(session.userId, membership.groupId);
 
   if (membership.sharingEligibility === "NOT_SHAREABLE") {
     return fail(
@@ -81,7 +109,13 @@ export const POST = withErrorHandling(async (req: Request) => {
     );
   }
 
-  if (await isBlockedEitherWay(membership.groupId, session.userId, membership.ownerId)) {
+  if (
+    await isBlockedEitherWay(
+      membership.groupId,
+      session.userId,
+      membership.ownerId
+    )
+  ) {
     return fail(
       "BLOCKED",
       "You can't request access to this membership.",
@@ -100,6 +134,7 @@ export const POST = withErrorHandling(async (req: Request) => {
   // Quantity-based benefits: make sure there's enough remaining.
   if (membership.remainingUnits !== null) {
     const units = data.requestedUnits ?? 1;
+
     if (units > (membership.remainingUnits ?? 0)) {
       return fail(
         "INSUFFICIENT_UNITS",
@@ -131,7 +166,8 @@ export const POST = withErrorHandling(async (req: Request) => {
       reason: data.reason,
     })
     .returning();
-await logActivity({
+
+  await logActivity({
     groupId: membership.groupId,
     actorId: session.userId,
     action: "ACCESS_REQUESTED",
@@ -139,6 +175,7 @@ await logActivity({
     entityId: data.membershipId,
     metadata: { membershipName: membership.name },
   });
+
   await notify({
     userId: membership.ownerId,
     type: "REQUEST_RECEIVED",

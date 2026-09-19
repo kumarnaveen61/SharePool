@@ -139,12 +139,26 @@ export default async function MembershipsPage({
                       {groupName}
                     </div>
 
-                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted">
+    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted">
                       <span>{m.category.replace(/_/g, " ")}</span>
                       {m.planName && <span>· {m.planName}</span>}
-                      {m.maxSimultaneousUsers > 1 && (
-                        <span>· up to {m.maxSimultaneousUsers} users</span>
-                      )}
+                      <span className="flex items-center gap-1.5">
+                        <span className="text-ink font-bold">
+                          {(m as any).activeCount ?? 0}
+                        </span>
+                        / {m.maxSimultaneousUsers} members
+                      </span>
+                      <span
+                        className={`rounded-md px-2 py-0.5 text-[10px] font-bold ${
+                          m.maxSimultaneousUsers - ((m as any).activeCount ?? 0) > 0
+                            ? "bg-teal-bg text-teal"
+                            : "bg-red-bg text-red"
+                        }`}
+                      >
+                        {m.maxSimultaneousUsers - ((m as any).activeCount ?? 0) > 0
+                          ? `${m.maxSimultaneousUsers - ((m as any).activeCount ?? 0)} available`
+                          : "Full"}
+                      </span>
                       <span className="flex items-center gap-1.5">
                         <span
                           className={`h-2 w-2 rounded-full ${

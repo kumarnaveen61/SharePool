@@ -69,6 +69,7 @@ function NewMembershipForm() {
   const [noGroups, setNoGroups] = useState(false);
 
   const [name, setName] = useState("");
+  const [multiAccount, setMultiAccount] = useState(false);
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [provider, setProvider] = useState("");
   const [planName, setPlanName] = useState("");
@@ -192,13 +193,17 @@ function NewMembershipForm() {
           </p>
         )}
 
-        <Field label="Name">
+        <Field label="Account label">
           <Input
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Netflix Premium"
+            placeholder="e.g. Family Plan, My Account"
           />
+          <p className="mt-1.5 text-[11px] text-muted">
+            Give this account a memorable name so your group knows which one
+            it is — like &ldquo;Family Plan&rdquo; or &ldquo;Arun&rsquo;s Account&rdquo;.
+          </p>
         </Field>
 
         <Field label="Category">
@@ -214,7 +219,7 @@ function NewMembershipForm() {
           </Select>
         </Field>
 
-        <Field label="Provider (optional)">
+        <Field label="Provider">
           <Input
             value={provider}
             onChange={(e) => setProvider(e.target.value)}
@@ -222,12 +227,44 @@ function NewMembershipForm() {
           />
         </Field>
 
-        <Field label="Plan name (optional)">
+        {provider.trim().length > 0 && (
+          <label className="flex items-start gap-3 rounded-xl border border-border bg-white/[0.02] p-3">
+            <input
+              type="checkbox"
+              checked={multiAccount}
+              onChange={(e) => setMultiAccount(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-[color:var(--gold)]"
+            />
+            <div>
+              <div className="text-xs font-bold text-ink">
+                I already have another {provider.trim()} account
+              </div>
+              <div className="mt-0.5 text-[11px] text-muted">
+                Tick this if you own multiple accounts from the same
+                provider. Each account needs a unique Account Label below.
+              </div>
+            </div>
+          </label>
+        )}
+
+        <Field label="Account Label">
           <Input
-            value={planName}
-            onChange={(e) => setPlanName(e.target.value)}
-            placeholder="Premium (4K, 4 screens)"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={
+              provider.trim()
+                ? multiAccount
+                  ? `e.g. Family ${provider.trim()}, Work ${provider.trim()}`
+                  : `e.g. My ${provider.trim()}, Family Plan`
+                : "e.g. Family Plan, My Account"
+            }
           />
+          <p className="mt-1.5 text-[11px] leading-relaxed text-muted">
+            {multiAccount
+              ? `Each ${provider.trim()} account needs a distinct label so your group can tell them apart.`
+              : "A friendly name your group will see — like \u201CFamily Plan\u201D or \u201CMy Account\u201D."}
+          </p>
         </Field>
 
         <Field label="Notes (optional)">

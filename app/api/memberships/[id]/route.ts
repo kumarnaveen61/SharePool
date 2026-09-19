@@ -4,6 +4,7 @@ import {
   users,
   membershipAvailability,
   accessRequests,
+  accessSessions,
 } from "@/lib/db/schema";
 import { requireUser, requireGroupMembership } from "@/lib/auth/guards";
 import { ok, fail, withErrorHandling } from "@/lib/api-response";
@@ -26,7 +27,10 @@ export const GET = withErrorHandling(
       return fail("MEMBERSHIP_NOT_FOUND", "Membership not found.", 404);
     }
 
-    const callerMembership = await requireGroupMembership(session.userId, row.membership.groupId);
+    const callerMembership = await requireGroupMembership(
+      session.userId,
+      row.membership.groupId
+    );
     await expireOverdueSessions(id);
 
     const [freshMembership] = await db
@@ -46,7 +50,6 @@ export const GET = withErrorHandling(
     const isCallerAdmin =
       callerMembership.role === "OWNER" || callerMembership.role === "ADMIN";
 
-    // If I own this, surface whether I have a pending request waiting on me.
     const pendingRequests = isOwner
       ? await db
           .select()
@@ -59,8 +62,6 @@ export const GET = withErrorHandling(
           )
       : [];
 
-    // If I don't own this, surface my own pending request (if any) so the
-    // UI can show "Request sent" instead of the request form again.
     const myPendingRequest = !isOwner
       ? (
           await db
@@ -77,6 +78,27 @@ export const GET = withErrorHandling(
         )[0] ?? null
       : null;
 
+    // Active members — people who have current access to this membership
+    const activeMembersRaw = await db
+      .select({
+        sessionId: accessSessions.id,
+        userId: accessSessions.requesterId,
+        userName: users.name,
+        startTime: accessSessions.startTime,
+        endTime: accessSessions.endTime,
+        units: accessSessions.units,
+        approvedAt: accessSessions.approvedAt,
+      })
+      .from(accessSessions)
+      .innerJoin(users, eq(accessSessions.requesterId, users.id))
+      .where(
+        and(
+          eq(accessSessions.membershipId, id),
+          eq(accessSessions.status, "ACTIVE")
+        )
+      )
+      .orderBy(desc(accessSessions.approvedAt));
+
     return ok({
       membership: freshMembership ?? row.membership,
       ownerName: row.ownerName,
@@ -85,6 +107,7 @@ export const GET = withErrorHandling(
       upcomingAvailability,
       pendingRequests,
       myPendingRequest,
+      activeMembers: activeMembersRaw,
     });
   }
 );
