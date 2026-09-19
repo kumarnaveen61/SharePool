@@ -1,3 +1,4 @@
+import { logActivity } from "@/lib/activity";
 import { db } from "@/lib/db";
 import { accessRequests, accessSessions, memberships } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth/guards";
@@ -125,7 +126,18 @@ export const POST = withErrorHandling(
         relatedAccessSessionId: newSession.id,
       });
 
-      return { updatedRequest, newSession };
+ return { updatedRequest, newSession };
+    });
+
+    await logActivity({
+      groupId: membership.groupId,
+      actorId: session.userId,
+      action: "ACCESS_APPROVED",
+      entityType: "membership",
+      entityId: membership.id,
+      metadata: {
+        membershipName: membership.name,
+      },
     });
 
     await notify({

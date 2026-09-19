@@ -1,3 +1,4 @@
+import { logActivity } from "@/lib/activity";
 import { db } from "@/lib/db";
 import { accessRequests, memberships, users } from "@/lib/db/schema";
 import { requireUser, requireGroupMembership } from "@/lib/auth/guards";
@@ -130,7 +131,14 @@ export const POST = withErrorHandling(async (req: Request) => {
       reason: data.reason,
     })
     .returning();
-
+await logActivity({
+    groupId: membership.groupId,
+    actorId: session.userId,
+    action: "ACCESS_REQUESTED",
+    entityType: "membership",
+    entityId: data.membershipId,
+    metadata: { membershipName: membership.name },
+  });
   await notify({
     userId: membership.ownerId,
     type: "REQUEST_RECEIVED",

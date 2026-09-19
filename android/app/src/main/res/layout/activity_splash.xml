@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#11141A"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/splashRings"
+        android:layout_width="160dp"
+        android:layout_height="160dp"
+        android:src="@drawable/splash_rings_animated"
+        android:contentDescription="@null" />
+
+    <TextView
+        android:id="@+id/splashTagline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Share smart. Save together."
+        android:textColor="#8B93A3"
+        android:textSize="13sp"
+        android:letterSpacing="0.04"
+        android:alpha="0"
+        android:scaleX="0.2"
+        android:scaleY="0.2" />
+
+</LinearLayout>

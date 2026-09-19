@@ -43,7 +43,7 @@ export default async function MembershipsPage({
     );
   }
 
-  // Build dynamic filters
+   // Build dynamic filters
   const conditions = [inArray(memberships.groupId, groupIds)];
   if (category) {
     conditions.push(eq(memberships.category, category as never));
@@ -52,7 +52,9 @@ export default async function MembershipsPage({
     conditions.push(
       or(
         ilike(memberships.provider, `%${q}%`),
-        ilike(memberships.name, `%${q}%`)
+        ilike(memberships.name, `%${q}%`),
+        ilike(memberships.planName, `%${q}%`),
+        ilike(memberships.description, `%${q}%`)
       ) as never
     );
   }

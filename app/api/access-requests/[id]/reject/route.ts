@@ -1,3 +1,4 @@
+import { logActivity } from "@/lib/activity";
 import { db } from "@/lib/db";
 import { accessRequests, memberships } from "@/lib/db/schema";
 import { requireUser } from "@/lib/auth/guards";
@@ -37,7 +38,10 @@ export const POST = withErrorHandling(
     }
 
     const [membership] = await db
-      .select({ name: memberships.name })
+      .select({
+        name: memberships.name,
+        groupId: memberships.groupId,
+      })
       .from(memberships)
       .where(eq(memberships.id, request.membershipId))
       .limit(1);
@@ -48,7 +52,21 @@ export const POST = withErrorHandling(
       .where(eq(accessRequests.id, requestId))
       .returning();
 
+    if (membership?.groupId) {
+      await logActivity({
+        groupId: membership.groupId,
+        actorId: session.userId,
+        action: "ACCESS_REJECTED",
+        entityType: "membership",
+        entityId: request.membershipId,
+        metadata: {
+          membershipName: membership.name,
+        },
+      });
+    }
+
     await notify({
+
       userId: request.requesterId,
       type: "REQUEST_REJECTED",
       title: `Your request for ${membership?.name ?? "a membership"} was declined`,

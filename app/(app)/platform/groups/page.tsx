@@ -4,6 +4,7 @@ import { getSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { groups, groupMembers } from "@/lib/db/schema";
 import { count } from "drizzle-orm";
+import { GroupAdminActions } from "@/components/GroupAdminActions";
 
 export default async function PlatformGroupsPage() {
   const session = await getSession();
@@ -16,6 +17,8 @@ export default async function PlatformGroupsPage() {
       name: groups.name,
       inviteCode: groups.inviteCode,
       memberLimit: groups.memberLimit,
+      description: groups.description,
+      rules: groups.rules,
     })
     .from(groups);
 
@@ -62,7 +65,7 @@ export default async function PlatformGroupsPage() {
                 key={g.id}
                 className="rounded-2xl border border-border bg-card p-5 transition-colors hover:border-gold/40"
               >
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0 flex-1">
                     <Link
                       href={`/groups/${g.id}`}
@@ -83,19 +86,20 @@ export default async function PlatformGroupsPage() {
                     </div>
                   </div>
 
-                  <div className="flex shrink-0 gap-2">
+                  <div className="flex shrink-0 flex-wrap gap-2">
                     <Link
                       href={`/groups/${g.id}`}
-                      className="rounded-xl border border-border px-4 py-2.5 text-xs font-bold text-ink hover:bg-white/5"
+                      className="rounded-xl border border-border px-3 py-2 text-[11px] font-extrabold text-ink hover:bg-white/5"
                     >
                       View
                     </Link>
                     <Link
                       href={`/groups/${g.id}/admin`}
-                      className="rounded-xl border border-border px-4 py-2.5 text-xs font-bold text-ink hover:bg-white/5"
+                      className="rounded-xl border border-border px-3 py-2 text-[11px] font-extrabold text-ink hover:bg-white/5"
                     >
                       Manage
                     </Link>
+                    <GroupAdminActions group={g} />
                   </div>
                 </div>
               </div>

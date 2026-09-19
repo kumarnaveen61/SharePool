@@ -1,5 +1,6 @@
 "use client";
 
+import { CredentialForm } from "@/components/credentials/CredentialForm";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
@@ -436,8 +437,8 @@ export default function MembershipDetailPage() {
         </div>
 
         {/* Owner: "Offer this to the group" + chips */}
-        {isOwner && membership.sharingEligibility !== "NOT_SHAREABLE" && (
-          <>
+{isOwner && membership.sharingEligibility !== "NOT_SHAREABLE" && (
+  <>
             <div className="flex items-center justify-between border-t border-border px-6 py-5">
               <span className="text-sm font-extrabold">
                 Offer this to the group
@@ -506,7 +507,9 @@ export default function MembershipDetailPage() {
             </button>
           </>
         )}
-
+        {isOwner && membership.sharingEligibility !== "NOT_SHAREABLE" && (
+          <CredentialForm membershipId={membership.id} />
+        )}
         {isOwner && membership.sharingEligibility === "NOT_SHAREABLE" && (
           <div className="border-t border-border px-6 py-5">
             <p className="text-xs leading-relaxed text-muted">

@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { logActivity } from "@/lib/activity";
 import { memberships, users } from "@/lib/db/schema";
 import { requireUser, requireGroupMembership } from "@/lib/auth/guards";
 import { createMembershipSchema } from "@/lib/validation/schemas";
@@ -31,14 +32,15 @@ export const GET = withErrorHandling(async (req: Request) => {
 
   const conditions = [eq(memberships.groupId, groupId)];
   if (search) {
-    conditions.push(
-      or(
-        ilike(memberships.name, `%${search}%`),
-        ilike(memberships.provider, `%${search}%`),
-        ilike(memberships.description, `%${search}%`)
-      )!
-    );
-  }
+  conditions.push(
+    or(
+      ilike(memberships.name, `%${search}%`),
+      ilike(memberships.provider, `%${search}%`),
+      ilike(memberships.planName, `%${search}%`),
+      ilike(memberships.description, `%${search}%`)
+    )!
+  );
+}
   if (category) {
     conditions.push(eq(memberships.category, category as any));
   }
@@ -99,7 +101,7 @@ export const POST = withErrorHandling(async (req: Request) => {
       })
       .returning();
 
-    await adjustCredits(tx, {
+        await adjustCredits(tx, {
       groupId: data.groupId,
       userId: session.userId,
       amount: CREDIT_RULES.MEMBERSHIP_CONTRIBUTED,
@@ -107,6 +109,15 @@ export const POST = withErrorHandling(async (req: Request) => {
     });
 
     return created;
+  });
+
+  await logActivity({
+    groupId: data.groupId,
+    actorId: session.userId,
+    action: "MEMBERSHIP_CREATED",
+    entityType: "membership",
+    entityId: membership.id,
+    metadata: { name: membership.name },
   });
 
   return ok({ membership }, 201);

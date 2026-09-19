@@ -44,13 +44,14 @@ export default async function GroupDetailPage({
   const session = await getSession();
   if (!session) redirect("/login");
 
-  let callerMembership;
-  try {
-    callerMembership = await requireGroupMembership(session.userId, groupId);
-  } catch (err) {
-    if (err instanceof AuthError) return notFound();
-    throw err;
-  }
+  let callerMembership: { role: string } | null = null;
+try {
+  callerMembership = await requireGroupMembership(session.userId, groupId);
+} catch (err) {
+  if (!(err instanceof AuthError)) throw err;
+  // Non-members can still view if they're a platform super admin
+  if (session.role !== "SUPER_ADMIN") return notFound();
+}
 
   const [group] = await db
     .select()
@@ -89,7 +90,12 @@ export default async function GroupDetailPage({
     .limit(6);
 
   const isAdmin =
-    callerMembership.role === "OWNER" || callerMembership.role === "ADMIN";
+  session.role === "SUPER_ADMIN" ||
+  callerMembership?.role === "OWNER" ||
+  callerMembership?.role === "ADMIN";
+
+const callerRole = callerMembership?.role ?? "SUPER_ADMIN";
+
 
   // Sort members: owners first, then admins, then members
   const roleOrder: Record<string, number> = {
@@ -118,7 +124,7 @@ export default async function GroupDetailPage({
                 {members.length}{" "}
                 {members.length === 1 ? "member" : "members"}
                 <span className="mx-1.5">·</span>
-                You&apos;re {callerMembership.role.toLowerCase()}
+                You&apos;re {callerRole.toLowerCase()}
               </p>
               {group.description && (
                 <p className="mt-3 text-sm leading-relaxed text-muted">

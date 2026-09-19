@@ -15,7 +15,11 @@ import { relations } from "drizzle-orm";
 // ─────────────────────────────────────────────────────────
 // ENUMS
 // ─────────────────────────────────────────────────────────
-
+export const pricePeriodEnum = pgEnum("price_period", [
+  "MONTHLY",
+  "YEARLY",
+  "ONE_TIME",
+]);
 export const userRoleEnum = pgEnum("user_role", [
   "USER",
   "GROUP_ADMIN",
@@ -130,6 +134,9 @@ export const users = pgTable("users", {
   // JWT, so incrementing this instantly invalidates all previously-issued
   // sessions without needing a server-side session store.
   sessionVersion: integer("session_version").notNull().default(0),
+    priceAmount: integer("price_amount"),
+  priceCurrency: varchar("price_currency", { length: 3 }).default("INR"),
+  pricePeriod: pricePeriodEnum("price_period"),
   isDemo: boolean("is_demo").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
@@ -675,6 +682,70 @@ export const accessSessionsRelations = relations(
     requester: one(users, {
       fields: [accessSessions.requesterId],
       references: [users.id],
+    }),
+  })
+);
+
+
+// ─────────────────────────────────────────────────────────
+// MEMBERSHIP CREDENTIALS (how the owner actually shares access)
+// ─────────────────────────────────────────────────────────
+
+export const credentialTypeEnum = pgEnum("credential_type", [
+  "SHARED_PASSWORD",
+  "PHONE_NUMBER",
+  "MEMBER_ID",
+  "VOUCHER_CODE",
+  "EMAIL_INVITE",
+  "OWNER_ACTION",
+  "CUSTOM_TEXT",
+]);
+
+export const membershipCredentials = pgTable(
+  "membership_credentials",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    membershipId: uuid("membership_id")
+      .notNull()
+      .references(() => memberships.id, { onDelete: "cascade" }),
+    type: credentialTypeEnum("type").notNull(),
+
+    // Encrypted payload (JSON string, AES-256-GCM). Null for EMAIL_INVITE and OWNER_ACTION.
+    encryptedPayload: text("encrypted_payload"),
+    iv: varchar("iv", { length: 64 }),
+
+    // Plaintext instructions that are safe to show
+    instructions: text("instructions"),
+
+    // Voucher-specific
+    voucherExpiresAt: timestamp("voucher_expires_at", { withTimezone: true }),
+    voucherRedeemUrl: text("voucher_redeem_url"),
+    voucherUsedAt: timestamp("voucher_used_at", { withTimezone: true }),
+    voucherUsedByUserId: uuid("voucher_used_by_user_id").references(
+      () => users.id,
+      { onDelete: "set null" }
+    ),
+
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    membershipIdx: uniqueIndex("membership_credentials_membership_idx").on(
+      table.membershipId
+    ),
+  })
+);
+
+export const membershipCredentialsRelations = relations(
+  membershipCredentials,
+  ({ one }) => ({
+    membership: one(memberships, {
+      fields: [membershipCredentials.membershipId],
+      references: [memberships.id],
     }),
   })
 );

@@ -1,3 +1,6 @@
+import { ActivityFeed, type ActivityRow } from "@/components/ActivityFeed";
+import { SearchBar } from "@/components/SearchBar";
+import { activityLogs } from "@/lib/db/schema";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
@@ -164,6 +167,35 @@ export default async function DashboardPage() {
     .orderBy(desc(memberships.createdAt))
     .limit(6);
 
+    
+  // Recent activity in this group
+  const activityRaw = await db
+    .select({
+      id: activityLogs.id,
+      action: activityLogs.action,
+      entityType: activityLogs.entityType,
+      entityId: activityLogs.entityId,
+      metadata: activityLogs.metadata,
+      createdAt: activityLogs.createdAt,
+      actorName: users.name,
+    })
+    .from(activityLogs)
+    .leftJoin(users, eq(activityLogs.actorId, users.id))
+    .where(eq(activityLogs.groupId, groupId))
+    .orderBy(desc(activityLogs.createdAt))
+    .limit(8);
+
+  const activityItems: ActivityRow[] = activityRaw.map((r) => ({
+    id: r.id,
+    action: r.action,
+    entityType: r.entityType,
+    entityId: r.entityId,
+    metadata: r.metadata,
+    createdAt: r.createdAt.toISOString(),
+    actorName: r.actorName,
+  }));
+
+
   // Counts for the "Your SharePool" activity cards
   const [pendingReqCountRow] = await db
     .select({ c: count() })
@@ -240,38 +272,8 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* ─── SEARCH ───────────────────────────────────────────── */}
-      <form
-        action="/memberships"
-        method="GET"
-        className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-1.5 shadow-md"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="h-4 w-4 text-muted"
-        >
-          <circle cx="11" cy="11" r="8" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
-        <input
-          name="q"
-          placeholder="Search Netflix, Spotify, gym, pharmacy…"
-          className="flex-1 bg-transparent py-3 text-sm outline-none placeholder:text-muted"
-        />
-        <button
-          type="submit"
-          className="rounded-xl bg-gold px-5 py-2.5 text-sm font-bold text-[#1A1300] hover:bg-gold-dark"
-        >
-          Search
-        </button>
-      </form>
-
+            {/* ─── SEARCH ──────────────────────────────────────── */}
+      <SearchBar />
       {/* ─── CATEGORIES ───────────────────────────────────────── */}
       <section>
         <div className="mb-4 flex items-end justify-between">
@@ -393,6 +395,7 @@ export default async function DashboardPage() {
           </div>
         )}
       </section>
+      <ActivityFeed items={activityItems} />
 
       {/* ─── YOUR SHAREPOOL ──────────────────────────────────── */}
       <section>
