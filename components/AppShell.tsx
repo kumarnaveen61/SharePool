@@ -8,6 +8,7 @@ import { BrandLogo } from "./BrandLogo";
 import { NotificationBell } from "./NotificationBell";
 import { ThemeToggle } from "./ThemeToggle";
 import { BottomNav } from "./BottomNav";
+import { QuickActionsFAB } from "./QuickActionsFAB";
 
 const NAV_ITEMS = [
   {
@@ -27,6 +28,16 @@ const NAV_ITEMS = [
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />
         <polyline points="12 6 12 12 16 14" />
+      </svg>
+    ),
+  },
+  {
+    href: "/my-access",
+    label: "My access",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="4" y="11" width="16" height="10" rx="2" />
+        <path d="M8 11V7a4 4 0 0 1 8 0v4" />
       </svg>
     ),
   },
@@ -131,12 +142,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen bg-background text-ink">
-      {/* Fixed top bar */}
       <div className="fixed inset-x-0 top-0 z-40">
         <div className="border-b border-border/60 bg-background/85 backdrop-blur-xl">
           <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 md:px-10 md:py-4">
             <div className="flex items-center justify-between gap-3">
-              {/* Brand */}
               <Link href="/dashboard" className="flex shrink-0 items-center gap-2.5">
                 <BrandLogo size={32} />
                 <span className="text-lg font-extrabold tracking-tight">
@@ -144,7 +153,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </span>
               </Link>
 
-              {/* Desktop pill nav */}
               <div className="hidden items-center gap-0.5 rounded-full border border-[var(--pill-border)] bg-[var(--pill-bg)] p-1.5 md:flex">
                 {NAV_ITEMS.map((item) => {
                   const isActive =
@@ -195,9 +203,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
                   </svg>
                 </Link>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  aria-label="Sign out"
+                  className="flex shrink-0 items-center rounded-full px-3 py-2.5 text-muted transition-colors hover:text-red [&>svg]:h-[18px] [&>svg]:w-[18px]"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                </button>
               </div>
 
-              {/* Mobile icon group */}
               <div className="flex items-center gap-0.5 md:hidden">
                 <NotificationBell />
                 <ThemeToggle />
@@ -221,13 +241,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <VerificationBanner />
       </div>
 
-      {/* Main content */}
       <main className="mx-auto max-w-7xl px-4 pb-28 pt-32 sm:px-6 md:px-10 md:pb-16 md:pt-36">
         {children}
       </main>
 
-      {/* Mobile bottom nav */}
       <BottomNav />
+      <QuickActionsFAB />
     </div>
   );
 }

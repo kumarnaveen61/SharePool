@@ -134,9 +134,6 @@ export const users = pgTable("users", {
   // JWT, so incrementing this instantly invalidates all previously-issued
   // sessions without needing a server-side session store.
   sessionVersion: integer("session_version").notNull().default(0),
-    priceAmount: integer("price_amount"),
-  priceCurrency: varchar("price_currency", { length: 3 }).default("INR"),
-  pricePeriod: pricePeriodEnum("price_period"),
   isDemo: boolean("is_demo").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
@@ -253,10 +250,13 @@ export const memberships = pgTable("memberships", {
     .default("OWNER_ASSISTED"),
   status: membershipStatusEnum("status").notNull().default("UNAVAILABLE"),
   maxSimultaneousUsers: integer("max_simultaneous_users").notNull().default(1),
-  totalUnits: integer("total_units"), // for quantity-based benefits (e.g. 2 lounge visits)
-  remainingUnits: integer("remaining_units"), // null = not a quantity-based benefit
+  totalUnits: integer("total_units"),
+  remainingUnits: integer("remaining_units"),
   expiryDate: timestamp("expiry_date", { withTimezone: true }),
   renewalDate: timestamp("renewal_date", { withTimezone: true }),
+  priceAmount: integer("price_amount"),
+  priceCurrency: varchar("price_currency", { length: 3 }).default("INR"),
+  pricePeriod: pricePeriodEnum("price_period"),
   isDemo: boolean("is_demo").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

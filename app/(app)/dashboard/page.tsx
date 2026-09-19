@@ -1,3 +1,4 @@
+import { ExpiringSoon, type ExpiringItem } from "@/components/ExpiringSoon";
 import { ActivityFeed, type ActivityRow } from "@/components/ActivityFeed";
 import { SearchBar } from "@/components/SearchBar";
 import { activityLogs } from "@/lib/db/schema";
@@ -12,7 +13,7 @@ import {
   accessRequests,
   users,
 } from "@/lib/db/schema";
-import { and, count, desc, eq } from "drizzle-orm";
+import { and, count, desc, eq, isNotNull, lte, or } from "drizzle-orm";
 
 const CATEGORY_TILES = [
   { id: "OTT", label: "OTT & TV", icon: "tv" },
@@ -215,7 +216,46 @@ export default async function DashboardPage() {
       and(eq(memberships.groupId, groupId), eq(memberships.ownerId, userId))
     );
   const mySharesCount = Number(mySharesCountRow?.c ?? 0);
+        // Memberships renewing or expiring in the next 7 days (owner view only)
+  const sevenDaysFromNow = new Date();
+  sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
 
+  const expiringRaw = await db
+    .select({
+      id: memberships.id,
+      name: memberships.name,
+      provider: memberships.provider,
+      renewalDate: memberships.renewalDate,
+      expiryDate: memberships.expiryDate,
+    })
+    .from(memberships)
+    .where(
+      and(
+        eq(memberships.groupId, groupId),
+        eq(memberships.ownerId, session.userId),
+        or(
+          and(
+            isNotNull(memberships.renewalDate),
+            lte(memberships.renewalDate, sevenDaysFromNow)
+          ),
+          and(
+            isNotNull(memberships.expiryDate),
+            lte(memberships.expiryDate, sevenDaysFromNow)
+          )
+        )
+      )
+    )
+    .orderBy(memberships.renewalDate)
+    .limit(5);
+
+  const expiringItems: ExpiringItem[] = expiringRaw.map((r) => ({
+    id: r.id,
+    name: r.name,
+    provider: r.provider,
+    renewalDate: r.renewalDate ? r.renewalDate.toISOString() : null,
+    expiryDate: r.expiryDate ? r.expiryDate.toISOString() : null,
+    isOwner: true,
+  }));
   return (
     <div className="space-y-10">
       {/* ─── HERO ─────────────────────────────────────────────── */}
@@ -395,8 +435,11 @@ export default async function DashboardPage() {
           </div>
         )}
       </section>
+       <ExpiringSoon items={expiringItems} />
       <ActivityFeed items={activityItems} />
+ 
 
+ 
       {/* ─── YOUR SHAREPOOL ──────────────────────────────────── */}
       <section>
         <div className="mb-4">

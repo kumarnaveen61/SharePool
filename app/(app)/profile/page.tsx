@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/Button";
 import { apiFetch, ApiError } from "@/lib/api-client";
+import { useTheme } from "@/components/ThemeToggle";
 
 type Me = {
   id: string;
@@ -13,6 +13,13 @@ type Me = {
   role: string;
   emailVerified: boolean;
 };
+
+function initialsFor(name: string) {
+  const words = name.replace(/[^\w+ ]/g, " ").split(" ").filter(Boolean);
+  if (words.length === 0) return "?";
+  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
+  return (words[0][0] + words[1][0]).toUpperCase();
+}
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -24,8 +31,14 @@ export default function ProfilePage() {
   useEffect(() => {
     apiFetch<{ user: Me }>("/api/auth/me")
       .then(({ user }) => setMe(user))
-      .catch((err) => setError(err instanceof ApiError ? err.message : "Could not load."));
-  }, []);
+      .catch((err) => {
+        if (err instanceof ApiError && err.status === 401) {
+          router.push("/login");
+          return;
+        }
+        setError(err instanceof ApiError ? err.message : "Could not load.");
+      });
+  }, [router]);
 
   async function resendVerification() {
     setBusy(true);
@@ -36,6 +49,17 @@ export default function ProfilePage() {
       setError(err instanceof ApiError ? err.message : "Something went wrong.");
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function logout() {
+    setBusy(true);
+    try {
+      await apiFetch("/api/auth/logout", { method: "POST" });
+      router.push("/login");
+      router.refresh();
+    } catch {
+      router.push("/login");
     }
   }
 
@@ -52,70 +76,153 @@ export default function ProfilePage() {
     }
   }
 
-  if (error) return <p className="text-sm text-danger">{error}</p>;
-  if (!me) return <p className="text-sm text-muted">Loading…</p>;
+  if (error) {
+    return (
+      <div className="mx-auto max-w-md">
+        <p className="rounded-xl border border-red/30 bg-red-bg px-4 py-3 text-sm text-red">
+          {error}
+        </p>
+        <Link
+          href="/login"
+          className="mt-4 block text-center text-xs font-bold text-gold hover:underline"
+        >
+          Sign in again →
+        </Link>
+      </div>
+    );
+  }
 
-  return (
-    <div className="mx-auto max-w-md">
-      <div className="flex items-center gap-3">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand/10 text-lg font-semibold text-brand">
-          {me.name.split(" ").map((p) => p[0]).slice(0, 2).join("")}
-        </div>
-        <div>
-          <h1 className="text-xl font-semibold text-ink">{me.name}</h1>
-          <p className="mt-0.5 text-sm text-muted">{me.email}</p>
+  if (!me) {
+    return (
+      <div className="mx-auto max-w-md">
+        <div className="animate-pulse space-y-3">
+          <div className="h-16 rounded-2xl bg-white/5" />
+          <div className="h-24 rounded-2xl bg-white/5" />
         </div>
       </div>
+    );
+  }
 
-      <div className="mt-6 rounded-xl border border-border bg-surface p-4">
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted">Email verification</span>
+  return (
+    <div className="mx-auto max-w-md space-y-5">
+      {/* Profile card */}
+      <div className="rounded-3xl border border-border bg-card p-6">
+        <div className="flex items-center gap-4">
+          <div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl border border-gold/25 bg-gold/10 text-lg font-extrabold text-gold">
+            {initialsFor(me.name)}
+          </div>
+          <div className="min-w-0">
+            <h1 className="truncate text-xl font-extrabold tracking-tight">
+              {me.name}
+            </h1>
+            <p className="mt-0.5 truncate text-xs text-muted">{me.email}</p>
+            {me.role === "SUPER_ADMIN" && (
+              <span className="mt-2 inline-block rounded-full bg-gold/15 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-gold">
+                Admin
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Email verification */}
+        <div className="mt-5 flex items-center justify-between rounded-2xl border border-border bg-white/[0.02] px-4 py-3">
+          <div>
+            <div className="text-xs font-bold">Email status</div>
+            <div className="mt-0.5 text-[11px] text-muted">
+              {me.emailVerified
+                ? "Verified and confirmed"
+                : "Please verify to enable all features"}
+            </div>
+          </div>
           {me.emailVerified ? (
-            <span className="text-success">Verified</span>
+            <span className="rounded-full bg-teal-bg px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-teal">
+              ✓ Verified
+            </span>
           ) : (
             <button
               onClick={resendVerification}
               disabled={busy}
-              className="font-medium text-brand"
+              className="rounded-xl bg-gold px-3.5 py-2 text-[11px] font-extrabold text-[#1A1300] transition-colors hover:bg-gold-dark disabled:opacity-60"
             >
-              {resendSent ? "Link sent" : "Verify now"}
+              {resendSent ? "Sent ✓" : "Verify now"}
             </button>
           )}
         </div>
       </div>
 
+      {/* Admin links */}
       {me.role === "SUPER_ADMIN" && (
-        <div className="mt-4 flex flex-col gap-2">
-          <Link
-            href="/platform/analytics"
-            className="block rounded-xl border border-border bg-surface p-4 text-sm font-medium text-ink hover:border-brand"
-          >
-            Platform analytics →
-          </Link>
-          <Link
-            href="/platform/health"
-            className="block rounded-xl border border-border bg-surface p-4 text-sm font-medium text-ink hover:border-brand"
-          >
-            System health →
-          </Link>
-          <Link
-            href="/platform/launch-checklist"
-            className="block rounded-xl border border-border bg-surface p-4 text-sm font-medium text-ink hover:border-brand"
-          >
-            Launch checklist →
-          </Link>
+        <div className="rounded-3xl border border-border bg-card p-6">
+          <div className="mb-4">
+            <div className="text-sm font-extrabold">Admin tools</div>
+            <div className="mt-0.5 text-[11px] text-muted">
+              Platform-wide controls
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Link
+              href="/platform/groups"
+              className="flex items-center justify-between rounded-2xl border border-border bg-white/[0.02] px-4 py-3 text-xs font-bold transition-colors hover:border-gold/40"
+            >
+              <span>Manage groups</span>
+              <span className="text-muted">→</span>
+            </Link>
+            <Link
+              href="/platform/analytics"
+              className="flex items-center justify-between rounded-2xl border border-border bg-white/[0.02] px-4 py-3 text-xs font-bold transition-colors hover:border-gold/40"
+            >
+              <span>Platform analytics</span>
+              <span className="text-muted">→</span>
+            </Link>
+            <Link
+              href="/platform/health"
+              className="flex items-center justify-between rounded-2xl border border-border bg-white/[0.02] px-4 py-3 text-xs font-bold transition-colors hover:border-gold/40"
+            >
+              <span>System health</span>
+              <span className="text-muted">→</span>
+            </Link>
+            <Link
+              href="/platform/launch-checklist"
+              className="flex items-center justify-between rounded-2xl border border-border bg-white/[0.02] px-4 py-3 text-xs font-bold transition-colors hover:border-gold/40"
+            >
+              <span>Launch checklist</span>
+              <span className="text-muted">→</span>
+            </Link>
+          </div>
         </div>
       )}
 
-      <div className="mt-6">
-        <p className="text-sm font-medium text-ink">Security</p>
-        <p className="mt-1 text-xs text-muted">
-          If you think your account may be compromised, sign out of every
-          device at once. You&apos;ll need to sign back in here too.
+      {/* Security */}
+      <div className="rounded-3xl border border-border bg-card p-6">
+        <div className="mb-4">
+          <div className="text-sm font-extrabold">Security</div>
+          <div className="mt-0.5 text-[11px] text-muted">
+            Session and access controls
+          </div>
+        </div>
+
+        <button
+          onClick={logout}
+          disabled={busy}
+          className="flex w-full items-center justify-between rounded-2xl border border-border bg-white/[0.02] px-4 py-3 text-xs font-bold transition-colors hover:border-gold/40 disabled:opacity-60"
+        >
+          <span>Sign out on this device</span>
+          <span className="text-muted">→</span>
+        </button>
+
+        <button
+          onClick={logoutEverywhere}
+          disabled={busy}
+          className="mt-2 flex w-full items-center justify-between rounded-2xl border border-red/30 bg-red-bg/30 px-4 py-3 text-xs font-bold text-red transition-colors hover:bg-red-bg disabled:opacity-60"
+        >
+          <span>Sign out of all devices</span>
+          <span>→</span>
+        </button>
+
+        <p className="mt-3 text-[10px] leading-relaxed text-muted">
+          Use &ldquo;all devices&rdquo; if you think your account may be
+          compromised. You&apos;ll need to sign back in here too.
         </p>
-        <Button variant="danger" onClick={logoutEverywhere} loading={busy} className="mt-3 w-full">
-          Log out of all devices
-        </Button>
       </div>
     </div>
   );
