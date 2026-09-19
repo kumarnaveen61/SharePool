@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -48,6 +48,8 @@ const ELIGIBILITY_OPTIONS = [
   },
 ];
 
+type MyGroup = { id: string; name: string };
+
 export default function NewMembershipPage() {
   return (
     <Suspense fallback={<p className="text-sm text-muted">Loading…</p>}>
@@ -55,8 +57,6 @@ export default function NewMembershipPage() {
     </Suspense>
   );
 }
-
-type MyGroup = { id: string; name: string };
 
 function NewMembershipForm() {
   const router = useRouter();
@@ -69,7 +69,6 @@ function NewMembershipForm() {
   const [noGroups, setNoGroups] = useState(false);
 
   const [name, setName] = useState("");
-  const [multiAccount, setMultiAccount] = useState(false);
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [provider, setProvider] = useState("");
   const [planName, setPlanName] = useState("");
@@ -78,7 +77,12 @@ function NewMembershipForm() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // If no groupId in the URL, fetch the user's groups and auto-pick the first.
+  const [availableProviders, setAvailableProviders] = useState<
+    { id: string; name: string }[]
+  >([]);
+  const [useCustomProvider, setUseCustomProvider] = useState(false);
+  const [customProvider, setCustomProvider] = useState("");
+
   useEffect(() => {
     if (urlGroupId) {
       setGroupsLoaded(true);
@@ -97,12 +101,33 @@ function NewMembershipForm() {
       .finally(() => setGroupsLoaded(true));
   }, [urlGroupId]);
 
+  useEffect(() => {
+    if (!category) return;
+    apiFetch<{ providers: { id: string; name: string }[] }>(
+      `/api/providers?category=${encodeURIComponent(category)}`
+    )
+      .then(({ providers }) => setAvailableProviders(providers))
+      .catch(() => setAvailableProviders([]));
+    setProvider("");
+    setUseCustomProvider(false);
+    setCustomProvider("");
+  }, [category]);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
     if (!groupId) {
       setError("Missing group. Create or join a group first.");
+      return;
+    }
+
+    const finalProvider = useCustomProvider
+      ? customProvider.trim()
+      : provider.trim();
+
+    if (!finalProvider) {
+      setError("Please choose or enter a provider.");
       return;
     }
 
@@ -116,13 +141,28 @@ function NewMembershipForm() {
             groupId,
             name,
             category,
-            provider: provider || undefined,
+            provider: finalProvider,
             planName: planName || undefined,
             description: description || undefined,
             sharingEligibility,
           }),
         }
       );
+
+      if (useCustomProvider && customProvider.trim()) {
+        try {
+          await apiFetch("/api/providers/suggest", {
+            method: "POST",
+            body: JSON.stringify({
+              category,
+              suggestedName: customProvider.trim(),
+            }),
+          });
+        } catch {
+          // Non-fatal
+        }
+      }
+
       router.push(`/memberships/${membership.id}`);
       router.refresh();
     } catch (err) {
@@ -132,7 +172,6 @@ function NewMembershipForm() {
     }
   }
 
-  // No groups at all — nudge the user to create or join one.
   if (groupsLoaded && noGroups) {
     return (
       <div className="mx-auto max-w-md py-16 text-center">
@@ -193,19 +232,6 @@ function NewMembershipForm() {
           </p>
         )}
 
-        <Field label="Account label">
-          <Input
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Family Plan, My Account"
-          />
-          <p className="mt-1.5 text-[11px] text-muted">
-            Give this account a memorable name so your group knows which one
-            it is — like &ldquo;Family Plan&rdquo; or &ldquo;Arun&rsquo;s Account&rdquo;.
-          </p>
-        </Field>
-
         <Field label="Category">
           <Select
             value={category}
@@ -220,51 +246,63 @@ function NewMembershipForm() {
         </Field>
 
         <Field label="Provider">
-          <Input
-            value={provider}
-            onChange={(e) => setProvider(e.target.value)}
-            placeholder="Netflix"
-          />
+          <Select
+            value={useCustomProvider ? "__other__" : provider}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === "__other__") {
+                setUseCustomProvider(true);
+                setProvider("");
+              } else {
+                setUseCustomProvider(false);
+                setProvider(v);
+              }
+            }}
+          >
+            <option value="">Select a provider…</option>
+            {availableProviders.map((p) => (
+              <option key={p.id} value={p.name}>
+                {p.name}
+              </option>
+            ))}
+            <option value="__other__">Others (not in list)</option>
+          </Select>
         </Field>
 
-        {provider.trim().length > 0 && (
-          <label className="flex items-start gap-3 rounded-xl border border-border bg-white/[0.02] p-3">
-            <input
-              type="checkbox"
-              checked={multiAccount}
-              onChange={(e) => setMultiAccount(e.target.checked)}
-              className="mt-0.5 h-4 w-4 accent-[color:var(--gold)]"
+        {useCustomProvider && (
+          <Field label="Enter provider name">
+            <Input
+              value={customProvider}
+              onChange={(e) => setCustomProvider(e.target.value)}
+              placeholder="e.g. Sun NXT"
             />
-            <div>
-              <div className="text-xs font-bold text-ink">
-                I already have another {provider.trim()} account
-              </div>
-              <div className="mt-0.5 text-[11px] text-muted">
-                Tick this if you own multiple accounts from the same
-                provider. Each account needs a unique Account Label below.
-              </div>
-            </div>
-          </label>
+            <p className="mt-1.5 text-[11px] leading-relaxed text-muted">
+              We&apos;ll submit this to the SharePool admin for review. Once
+              approved, it will appear in the list for everyone.
+            </p>
+          </Field>
         )}
 
-        <Field label="Account Label">
+<Field label="Account Label">
+  <Input
+    required
+    value={name}
+    onChange={(e) => setName(e.target.value)}
+    placeholder="e.g. Family Plan, Arun's Account"
+  />
+  <p className="mt-1.5 text-[11px] leading-relaxed text-muted">
+    Give this account a memorable name so your group knows which one
+    it is — like &ldquo;Family Plan&rdquo; or &ldquo;Arun&rsquo;s
+    Account&rdquo;.
+  </p>
+</Field>
+
+        <Field label="Plan name (optional)">
           <Input
-            required
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder={
-              provider.trim()
-                ? multiAccount
-                  ? `e.g. Family ${provider.trim()}, Work ${provider.trim()}`
-                  : `e.g. My ${provider.trim()}, Family Plan`
-                : "e.g. Family Plan, My Account"
-            }
+            value={planName}
+            onChange={(e) => setPlanName(e.target.value)}
+            placeholder="Premium (4K, 4 screens)"
           />
-          <p className="mt-1.5 text-[11px] leading-relaxed text-muted">
-            {multiAccount
-              ? `Each ${provider.trim()} account needs a distinct label so your group can tell them apart.`
-              : "A friendly name your group will see — like \u201CFamily Plan\u201D or \u201CMy Account\u201D."}
-          </p>
         </Field>
 
         <Field label="Notes (optional)">

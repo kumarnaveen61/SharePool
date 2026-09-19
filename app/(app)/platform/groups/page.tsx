@@ -43,6 +43,13 @@ export default async function PlatformGroupsPage() {
           </p>
         </div>
         <Link
+          href="/platform/providers"
+          className="rounded-xl border border-border px-5 py-2.5 text-xs font-bold text-ink hover:bg-white/5"
+        >
+          Review providers
+        </Link>
+
+        <Link
           href="/groups/new"
           className="rounded-xl bg-gold px-5 py-2.5 text-xs font-bold text-[#1A1300] hover:bg-gold-dark"
         >

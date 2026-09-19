@@ -166,6 +166,13 @@ export default function ProfilePage() {
               <span>Manage groups</span>
               <span className="text-muted">→</span>
             </Link>
+              <Link
+              href="/platform/providers"
+              className="flex items-center justify-between rounded-2xl border border-border bg-white/[0.02] px-4 py-3 text-xs font-bold transition-colors hover:border-gold/40"
+            >
+              <span>Manage providers</span>
+              <span className="text-muted">→</span>
+            </Link>
             <Link
               href="/platform/analytics"
               className="flex items-center justify-between rounded-2xl border border-border bg-white/[0.02] px-4 py-3 text-xs font-bold transition-colors hover:border-gold/40"

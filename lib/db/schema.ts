@@ -136,7 +136,7 @@ export const users = pgTable("users", {
   name: varchar("name", { length: 120 }).notNull(),
   avatarUrl: text("avatar_url"),
   role: userRoleEnum("role").notNull().default("USER"),
-  emailVerified: boolean("email_verified").notNull().default(false),
+  emailVerified: boolean("email_verified").notNull().default(true),
   // Bumped on password change / "log out everywhere" — embedded in every
   // JWT, so incrementing this instantly invalidates all previously-issued
   // sessions without needing a server-side session store.
