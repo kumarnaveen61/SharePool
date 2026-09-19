@@ -98,6 +98,12 @@ export const notificationTypeEnum = pgEnum("notification_type", [
   "ACCESS_REVOKED",
 ]);
 
+
+
+export const providerSuggestionStatusEnum = pgEnum(
+  "provider_suggestion_status",
+  ["PENDING", "APPROVED", "REJECTED"]
+);
 export const reportTargetTypeEnum = pgEnum("report_target_type", [
   "USER",
   "MEMBERSHIP",
@@ -561,6 +567,62 @@ export const adminActions = pgTable("admin_actions", {
 // ─────────────────────────────────────────────────────────
 // LAUNCH CHECKLIST (Phase 6)
 // ─────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────
+// PROVIDER CATALOG (master list of providers per category)
+// ─────────────────────────────────────────────────────────
+
+export const providerCatalog = pgTable(
+  "provider_catalog",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    category: membershipCategoryEnum("category").notNull(),
+    name: varchar("name", { length: 120 }).notNull(),
+    createdBy: uuid("created_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    uniqueCategoryName: uniqueIndex(
+      "provider_catalog_category_name_idx"
+    ).on(t.category, t.name),
+    categoryIdx: index("provider_catalog_category_idx").on(t.category),
+  })
+);
+
+// ─────────────────────────────────────────────────────────
+// PENDING PROVIDER SUGGESTIONS (admin review queue)
+// ─────────────────────────────────────────────────────────
+
+export const pendingProviders = pgTable(
+  "pending_providers",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    category: membershipCategoryEnum("category").notNull(),
+    suggestedName: varchar("suggested_name", { length: 120 }).notNull(),
+    submittedBy: uuid("submitted_by")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    membershipId: uuid("membership_id").references(() => memberships.id, {
+      onDelete: "set null",
+    }),
+    status: providerSuggestionStatusEnum("status").notNull().default("PENDING"),
+    reviewedBy: uuid("reviewed_by").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    adminNotes: text("admin_notes"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    statusIdx: index("pending_providers_status_idx").on(t.status),
+  })
+);
 
 export const launchChecklistItems = pgTable("launch_checklist_items", {
   id: uuid("id").primaryKey().defaultRandom(),

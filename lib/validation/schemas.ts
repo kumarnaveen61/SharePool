@@ -62,7 +62,11 @@ export const createMembershipSchema = z.object({
   totalUnits: z.number().int().min(1).optional(), // for quantity-based benefits
   expiryDate: z.string().datetime().optional(),
   renewalDate: z.string().datetime().optional(),
+  priceAmount: z.number().int().min(0).max(10_000_000).optional(),
+  priceCurrency: z.string().length(3).optional(),
+  pricePeriod: z.enum(["MONTHLY", "YEARLY", "ONE_TIME"]).optional(),
 });
+
 
 export const setAvailabilitySchema = z.object({
   membershipId: z.string().uuid(),

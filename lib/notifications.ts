@@ -15,7 +15,8 @@ type NotificationInput = {
     | "CREDITS_RECEIVED"
     | "MEMBERSHIP_REMOVED_BY_ADMIN"
     | "SUSPENDED_BY_ADMIN"
-    | "REMOVED_FROM_GROUP";
+    | "REMOVED_FROM_GROUP"
+    | "ACCESS_REVOKED";
   title: string;
   body?: string;
   relatedMembershipId?: string;
