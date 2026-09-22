@@ -103,7 +103,8 @@ export function AccessTabs({
           ) : (
             <div className="space-y-2">
               {owned.map((m) => {
-                const isSharing = m.status === "AVAILABLE" || m.status === "IN_USE";
+                const isSharing =
+                  m.status === "AVAILABLE" || m.status === "IN_USE";
                 return (
                   <Link
                     key={m.id}
@@ -114,7 +115,7 @@ export function AccessTabs({
                       {initialsFor(m.provider ?? m.name)}
                     </div>
                     <div className="min-w-0 flex-1">
-                     <div className="truncate text-sm font-extrabold">
+                      <div className="truncate text-sm font-extrabold">
                         {m.provider ?? m.name}
                       </div>
                       {m.provider && m.name !== m.provider && (
@@ -128,7 +129,9 @@ export function AccessTabs({
                     </div>
                     <span
                       className={`shrink-0 rounded-md px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider ${
-                        isSharing ? "bg-teal-bg text-teal" : "bg-white/5 text-muted"
+                        isSharing
+                          ? "bg-teal-bg text-teal"
+                          : "bg-white/5 text-muted"
                       }`}
                     >
                       {isSharing ? "Sharing" : "Off"}
@@ -169,19 +172,14 @@ export function AccessTabs({
                   <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-teal/25 bg-teal/10 text-sm font-extrabold text-teal">
                     {initialsFor(s.provider ?? s.membershipName)}
                   </div>
-                   <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-extrabold">
-                        {m.provider ?? m.name}
-                      </div>
-                      {m.provider && m.name !== m.provider && (
-                        <div className="truncate text-[11px] font-medium text-ink/80">
-                          {m.name}
-                        </div>
-                      )}
-                      <div className="mt-0.5 truncate text-[11px] text-muted">
-                        You own this · {m.activeCount}/{m.maxUsers} members
-                      </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-bold">
+                      {s.membershipName}
                     </div>
+                    <div className="mt-0.5 truncate text-[11px] text-muted">
+                      from <span className="font-semibold text-ink">{s.ownerName}</span>
+                    </div>
+                  </div>
                   <span className="shrink-0 rounded-md bg-teal-bg px-2 py-1 text-[10px] font-bold text-teal">
                     {timeLabel(s.endTime, s.units)}
                   </span>
