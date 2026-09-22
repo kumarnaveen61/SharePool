@@ -20,37 +20,50 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        // 1) Start the animated vector rings immediately
+        // Start the animated rings
         ImageView rings = findViewById(R.id.splashRings);
         if (rings.getDrawable() instanceof AnimatedVectorDrawable) {
             AnimatedVectorDrawable avd = (AnimatedVectorDrawable) rings.getDrawable();
             avd.start();
         }
 
-        // 2) After 500ms, zoom in + fade in the tagline
+        // Wordmark zooms in at 3.8s
+        final TextView wordmark = findViewById(R.id.splashWordmark);
+        new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (wordmark == null) return;
+                ObjectAnimator alpha = ObjectAnimator.ofFloat(wordmark, "alpha", 0f, 1f);
+                ObjectAnimator scaleX = ObjectAnimator.ofFloat(wordmark, "scaleX", 0.2f, 1f);
+                ObjectAnimator scaleY = ObjectAnimator.ofFloat(wordmark, "scaleY", 0.2f, 1f);
+
+                AnimatorSet set = new AnimatorSet();
+                set.playTogether(alpha, scaleX, scaleY);
+                set.setDuration(700);
+                set.setInterpolator(new OvershootInterpolator(1.1f));
+                set.start();
+            }
+        }, 3800);
+
+        // Tagline fades in at 4.5s
         final TextView tagline = findViewById(R.id.splashTagline);
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
+                if (tagline == null) return;
                 ObjectAnimator alpha = ObjectAnimator.ofFloat(tagline, "alpha", 0f, 1f);
-                ObjectAnimator scaleX = ObjectAnimator.ofFloat(tagline, "scaleX", 0.2f, 1f);
-                ObjectAnimator scaleY = ObjectAnimator.ofFloat(tagline, "scaleY", 0.2f, 1f);
-
-                AnimatorSet set = new AnimatorSet();
-                set.playTogether(alpha, scaleX, scaleY);
-                set.setDuration(1200);
-                set.setInterpolator(new OvershootInterpolator(1.1f));
-                set.start();
+                alpha.setDuration(700);
+                alpha.start();
             }
-        }, 500);
+        }, 4500);
 
-        // 3) After 2s total, launch MainActivity
+        // Launch MainActivity at 5.5s
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
                 startActivity(new Intent(SplashActivity.this, MainActivity.class));
                 finish();
             }
-        }, 2000);
+        }, 5500);
     }
 }

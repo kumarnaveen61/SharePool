@@ -198,6 +198,48 @@ export default function ProfilePage() {
         </div>
       )}
 
+            {/* How it works */}
+      <div className="rounded-3xl border border-border bg-card p-6">
+        <div>
+          <div className="text-sm font-extrabold">How SharePool works</div>
+          <div className="mt-0.5 text-[11px] text-muted">
+            Simple, private, built around trust.
+          </div>
+        </div>
+
+        <div className="mt-5 space-y-4">
+          {[
+            {
+              n: "01",
+              t: "Find",
+              d: "Discover subscriptions shared by people you trust.",
+            },
+            {
+              n: "02",
+              t: "Request",
+              d: "Ask for an available slot and wait for approval.",
+            },
+            {
+              n: "03",
+              t: "Share",
+              d: "Coordinate access and payments within your group.",
+            },
+          ].map((s) => (
+            <div key={s.n} className="flex gap-3">
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/5 text-[11px] font-extrabold text-gold">
+                {s.n}
+              </div>
+              <div>
+                <div className="text-xs font-extrabold">{s.t}</div>
+                <p className="mt-1 text-[11px] leading-relaxed text-muted">
+                  {s.d}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Security */}
       <div className="rounded-3xl border border-border bg-card p-6">
         <div className="mb-4">

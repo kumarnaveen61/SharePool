@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -22,8 +22,18 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/requests",
-    label: "My requests",
+    href: "/memberships",
+    label: "Browse",
+    icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="11" cy="11" r="8" />
+        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+      </svg>
+    ),
+  },
+  {
+    href: "/activity",
+    label: "Activity",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />
@@ -32,8 +42,8 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/my-access",
-    label: "My access",
+    href: "/access",
+    label: "Access",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="4" y="11" width="16" height="10" rx="2" />
@@ -42,22 +52,8 @@ const NAV_ITEMS = [
     ),
   },
   {
-    href: "/memberships",
-    label: "My listings",
-    icon: (
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <line x1="8" y1="6" x2="21" y2="6" />
-        <line x1="8" y1="12" x2="21" y2="12" />
-        <line x1="8" y1="18" x2="21" y2="18" />
-        <line x1="3" y1="6" x2="3.01" y2="6" />
-        <line x1="3" y1="12" x2="3.01" y2="12" />
-        <line x1="3" y1="18" x2="3.01" y2="18" />
-      </svg>
-    ),
-  },
-  {
     href: "/memberships/new",
-    label: "List a subscription",
+    label: "List",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <line x1="12" y1="5" x2="12" y2="19" />
@@ -91,45 +87,6 @@ function AdminTab() {
   );
 }
 
-function VerificationBanner() {
-  const [emailVerified, setEmailVerified] = useState<boolean | null>(null);
-  const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
-
-  useEffect(() => {
-    apiFetch<{ user: { emailVerified: boolean } }>("/api/auth/me")
-      .then(({ user }) => setEmailVerified(user.emailVerified))
-      .catch(() => setEmailVerified(null));
-  }, []);
-
-  async function resend() {
-    setSending(true);
-    try {
-      await apiFetch("/api/auth/resend-verification", { method: "POST" });
-      setSent(true);
-    } finally {
-      setSending(false);
-    }
-  }
-
-  if (emailVerified !== false) return null;
-
-  return (
-    <div className="border-b border-gold/30 bg-amber-bg px-4 py-2 text-center text-[11px] text-gold sm:text-xs">
-      {sent ? (
-        "Verification link sent — check your inbox."
-      ) : (
-        <>
-          Please verify your email.{" "}
-          <button onClick={resend} disabled={sending} className="font-medium underline">
-            Resend link
-          </button>
-        </>
-      )}
-    </div>
-  );
-}
-
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -156,9 +113,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               <div className="hidden items-center gap-0.5 rounded-full border border-[var(--pill-border)] bg-[var(--pill-bg)] p-1.5 md:flex">
                 {NAV_ITEMS.map((item) => {
                   const isActive =
-                    item.href === "/dashboard"
-                      ? pathname === "/dashboard"
-                      : pathname.startsWith(item.href);
+                    item.href === "/dashboard" || item.href === "/memberships"
+                      ? pathname === item.href
+                      : pathname === item.href ||
+                        pathname.startsWith(item.href + "/");
                   return (
                     <Link
                       key={item.href}
@@ -237,11 +195,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </div>
-
-        <VerificationBanner />
       </div>
 
-      <main className="mx-auto max-w-7xl px-4 pb-28 pt-32 sm:px-6 md:px-10 md:pb-16 md:pt-36">
+      <main className="mx-auto max-w-7xl px-4 pb-28 pt-24 sm:px-6 md:px-10 md:pb-16 md:pt-28">
         {children}
       </main>
 

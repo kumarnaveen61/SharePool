@@ -1,5 +1,5 @@
 ﻿import { redirect } from "next/navigation";
 
-export default function RequestsPage() {
+export default function LegacyRequests() {
   redirect("/activity?tab=incoming");
 }

@@ -1,4 +1,3 @@
-
 @import "tailwindcss";
 
 :root {
@@ -15,21 +14,18 @@
   --amber-bg: #332714;
   --red: #E2574C;
   --red-bg: #331616;
-
   --brand: #D9A441;
   --brand-dark: #B8862E;
   --accent: #3FD6B0;
   --accent-dark: #2FAE8E;
   --danger: #E2574C;
   --success: #3FD6B0;
-
   --pill-bg: rgba(30, 35, 44, 0.85);
   --pill-border: rgba(255, 255, 255, 0.1);
   --pill-active-bg: #ffffff;
   --pill-active-fg: #111111;
 }
 
-/* Light theme */
 [data-theme="light"] {
   --background: #F6F5F1;
   --surface: #FFFFFF;
@@ -44,24 +40,10 @@
   --amber-bg: #FBF0D6;
   --red: #C24B40;
   --red-bg: #FBE5E2;
-  --brand: #B8862E;
-  --brand-dark: #8F6420;
-  --accent: #0F8A68;
-  --accent-dark: #0A6B50;
-  --danger: #C24B40;
-  --success: #0F8A68;
   --pill-bg: rgba(255, 255, 255, 0.92);
   --pill-border: rgba(0, 0, 0, 0.08);
   --pill-active-bg: #1C2321;
   --pill-active-fg: #FFFFFF;
-  color-scheme: light;
-}
-
-html {
-  color-scheme: dark;
-}
-
-html[data-theme="light"] {
   color-scheme: light;
 }
 
@@ -89,6 +71,14 @@ html[data-theme="light"] {
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
+html {
+  color-scheme: dark;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
 body {
   background: var(--background);
   color: var(--ink);
@@ -101,11 +91,9 @@ body {
   border-color: var(--border);
 }
 
-/* Hide scrollbar but keep scroll functionality */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
-
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;

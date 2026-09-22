@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -25,8 +25,8 @@ const TABS = [
     ),
   },
   {
-    href: "/requests",
-    label: "Requests",
+    href: "/activity",
+    label: "Activity",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10" />
@@ -35,7 +35,7 @@ const TABS = [
     ),
   },
   {
-    href: "/my-access",
+    href: "/access",
     label: "Access",
     icon: (
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

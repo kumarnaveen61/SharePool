@@ -9,21 +9,33 @@
     <ImageView
         android:id="@+id/splashRings"
         android:layout_width="160dp"
-        android:layout_height="160dp"
+        android:layout_height="130dp"
         android:src="@drawable/splash_rings_animated"
         android:contentDescription="@null" />
+
+    <TextView
+        android:id="@+id/splashWordmark"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:text="SharePool"
+        android:textColor="#FFFFFF"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        android:letterSpacing="-0.01"
+        android:alpha="0"
+        android:scaleX="0.2"
+        android:scaleY="0.2" />
 
     <TextView
         android:id="@+id/splashTagline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="10dp"
         android:text="Share smart. Save together."
-        android:textColor="#8B93A3"
+        android:textColor="#B3A489"
         android:textSize="13sp"
         android:letterSpacing="0.04"
-        android:alpha="0"
-        android:scaleX="0.2"
-        android:scaleY="0.2" />
+        android:alpha="0" />
 
 </LinearLayout>
