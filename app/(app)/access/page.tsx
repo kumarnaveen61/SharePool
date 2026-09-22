@@ -16,8 +16,8 @@ export default async function AccessPage() {
   const userId = session.userId;
 
   // Owned memberships
-  const ownedRaw = await db
-     .select({
+   const ownedRaw = await db
+    .select({
       id: memberships.id,
       name: memberships.name,
       category: memberships.category,

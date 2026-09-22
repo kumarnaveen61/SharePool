@@ -1,19 +1,11 @@
-import { ExpiringSoon, type ExpiringItem } from "@/components/ExpiringSoon";
-import { ActivityFeed, type ActivityRow } from "@/components/ActivityFeed";
-import { SearchBar } from "@/components/SearchBar";
-import { activityLogs } from "@/lib/db/schema";
-import Link from "next/link";
+﻿import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/session";
 import { db } from "@/lib/db";
-import {
-  groupMembers,
-  groups,
-  memberships,
-  accessRequests,
-  users,
-} from "@/lib/db/schema";
+import { groupMembers, groups, memberships, users } from "@/lib/db/schema";
 import { and, count, desc, eq, isNotNull, lte, or } from "drizzle-orm";
+import { SearchBar } from "@/components/SearchBar";
+import { ExpiringSoon, type ExpiringItem } from "@/components/ExpiringSoon";
 
 const CATEGORY_TILES = [
   { id: "OTT", label: "OTT & TV", icon: "tv" },
@@ -87,7 +79,6 @@ export default async function DashboardPage() {
   if (!session) redirect("/login");
   const userId = session.userId;
 
-  // Who am I?
   const [me] = await db
     .select({ name: users.name })
     .from(users)
@@ -95,14 +86,12 @@ export default async function DashboardPage() {
     .limit(1);
   const firstName = me?.name?.split(" ")[0] ?? "there";
 
-  // Which group(s)?
   const myGroups = await db
     .select({ groupId: groups.id, groupName: groups.name })
     .from(groupMembers)
     .innerJoin(groups, eq(groupMembers.groupId, groups.id))
     .where(eq(groupMembers.userId, userId));
 
-  // No groups yet
   if (myGroups.length === 0) {
     return (
       <div className="mx-auto max-w-md py-16 text-center">
@@ -133,7 +122,6 @@ export default async function DashboardPage() {
 
   const { groupId, groupName } = myGroups[0];
 
-  // Group members for the avatar strip
   const memberRows = await db
     .select({ userId: groupMembers.userId, name: users.name })
     .from(groupMembers)
@@ -147,76 +135,21 @@ export default async function DashboardPage() {
     .where(eq(groupMembers.groupId, groupId));
   const memberCount = Number(memberCountRow[0]?.c ?? 0);
 
-  // Available memberships in my group
-  const available = await db
+  const myMemberships = await db
     .select({
       id: memberships.id,
       name: memberships.name,
       category: memberships.category,
       provider: memberships.provider,
-      planName: memberships.planName,
       status: memberships.status,
-      maxUsers: memberships.maxSimultaneousUsers,
-      ownerId: memberships.ownerId,
-      ownerName: users.name,
     })
     .from(memberships)
-    .innerJoin(users, eq(memberships.ownerId, users.id))
     .where(
-      and(eq(memberships.groupId, groupId), eq(memberships.status, "AVAILABLE"))
+      and(eq(memberships.groupId, groupId), eq(memberships.ownerId, userId))
     )
     .orderBy(desc(memberships.createdAt))
     .limit(6);
 
-    
-  // Recent activity in this group
-  const activityRaw = await db
-    .select({
-      id: activityLogs.id,
-      action: activityLogs.action,
-      entityType: activityLogs.entityType,
-      entityId: activityLogs.entityId,
-      metadata: activityLogs.metadata,
-      createdAt: activityLogs.createdAt,
-      actorName: users.name,
-    })
-    .from(activityLogs)
-    .leftJoin(users, eq(activityLogs.actorId, users.id))
-    .where(eq(activityLogs.groupId, groupId))
-    .orderBy(desc(activityLogs.createdAt))
-    .limit(8);
-
-  const activityItems: ActivityRow[] = activityRaw.map((r) => ({
-    id: r.id,
-    action: r.action,
-    entityType: r.entityType,
-    entityId: r.entityId,
-    metadata: r.metadata,
-    createdAt: r.createdAt.toISOString(),
-    actorName: r.actorName,
-  }));
-
-
-  // Counts for the "Your SharePool" activity cards
-  const [pendingReqCountRow] = await db
-    .select({ c: count() })
-    .from(accessRequests)
-    .where(
-      and(
-        eq(accessRequests.requesterId, userId),
-        eq(accessRequests.status, "PENDING")
-      )
-    );
-  const pendingReqCount = Number(pendingReqCountRow?.c ?? 0);
-
-  const [mySharesCountRow] = await db
-    .select({ c: count() })
-    .from(memberships)
-    .where(
-      and(eq(memberships.groupId, groupId), eq(memberships.ownerId, userId))
-    );
-  const mySharesCount = Number(mySharesCountRow?.c ?? 0);
-        // Memberships renewing or expiring in the next 7 days (owner view only)
   const sevenDaysFromNow = new Date();
   sevenDaysFromNow.setDate(sevenDaysFromNow.getDate() + 7);
 
@@ -256,9 +189,10 @@ export default async function DashboardPage() {
     expiryDate: r.expiryDate ? r.expiryDate.toISOString() : null,
     isOwner: true,
   }));
+
   return (
     <div className="space-y-10">
-      {/* ─── HERO ─────────────────────────────────────────────── */}
+      {/* HERO */}
       <div className="grid gap-6 md:grid-cols-[1.4fr_0.6fr] md:items-end">
         <div>
           <div className="text-[11px] font-extrabold uppercase tracking-[0.16em] text-gold">
@@ -282,10 +216,7 @@ export default async function DashboardPage() {
               <div className="mt-1 text-2xl font-extrabold">
                 {memberCount} {memberCount === 1 ? "person" : "people"}
               </div>
-              <div className="mt-0.5 text-[11px] text-muted">
-                {available.length} active share
-                {available.length === 1 ? "" : "s"}
-              </div>
+              <div className="mt-0.5 text-[11px] text-muted">{groupName}</div>
             </div>
             <span className="text-2xl">🤝</span>
           </div>
@@ -312,9 +243,10 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-            {/* ─── SEARCH ──────────────────────────────────────── */}
+      {/* SEARCH */}
       <SearchBar />
-      {/* ─── CATEGORIES ───────────────────────────────────────── */}
+
+      {/* CATEGORIES */}
       <section>
         <div className="mb-4 flex items-end justify-between">
           <div>
@@ -351,212 +283,85 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      {/* ─── AVAILABLE FROM YOUR NETWORK ──────────────────────── */}
+      {/* MY MEMBERSHIPS */}
       <section>
         <div className="mb-4 flex items-end justify-between">
           <div>
             <h2 className="text-lg font-extrabold tracking-tight">
-              Available from your network
+              🏠 My memberships
             </h2>
             <p className="mt-1 text-xs text-muted">
-              {available.length}{" "}
-              {available.length === 1 ? "subscription" : "subscriptions"} with
-              open slots
+              Subscriptions you own and share.
             </p>
           </div>
           <Link
-            href="/memberships"
+            href="/memberships/new"
             className="text-xs font-bold text-gold hover:underline"
           >
-            See all →
+            + Add new
           </Link>
         </div>
 
-        {available.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
+        {myMemberships.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-border bg-card p-8 text-center">
             <p className="text-sm text-muted">
-              No open slots in {groupName} yet.
+              You haven&apos;t shared anything yet.
             </p>
             <Link
               href="/memberships/new"
-              className="mt-5 inline-block rounded-xl bg-gold px-5 py-2.5 text-xs font-bold text-[#1A1300] hover:bg-gold-dark"
+              className="mt-4 inline-block rounded-xl bg-gold px-5 py-2.5 text-xs font-bold text-[#1A1300] hover:bg-gold-dark"
             >
-              Share your own
+              Share your first subscription
             </Link>
           </div>
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
-            {available.map((m) => (
-              <article
-                key={m.id}
-                className="rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-gold/50"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-border bg-white/5 text-base font-extrabold text-gold">
-                    {initialsFor(m.provider ?? m.name)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="truncate text-sm font-extrabold">
-                      {m.name}
-                    </h3>
-                    <div className="mt-0.5 truncate text-[11px] text-muted">
-                      Shared by {m.ownerName} ·{" "}
-                      {m.category.replace(/_/g, " ").toLowerCase()}
+            {myMemberships.map((m) => {
+              const isSharing =
+                m.status === "AVAILABLE" || m.status === "IN_USE";
+              return (
+                <Link
+                  key={m.id}
+                  href={`/memberships/${m.id}`}
+                  className="rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-gold/50"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-gold/25 bg-gold/10 text-base font-extrabold text-gold">
+                      {initialsFor(m.provider ?? m.name)}
                     </div>
-                  </div>
-                  <span className="shrink-0 rounded-md bg-teal-bg px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider text-teal">
-                    Available
-                  </span>
-                </div>
-
-                <div className="mt-4 flex items-end justify-between">
-                  <div className="flex gap-3 text-[11px] text-muted">
-                    {m.planName && (
-                      <span>
-                        <span className="font-bold text-ink">{m.planName}</span>
-                      </span>
-                    )}
-                    <span>
-                      <span className="font-bold text-ink">
-                        {m.maxUsers}
-                      </span>{" "}
-                      {m.maxUsers === 1 ? "slot" : "slots"}
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate text-sm font-extrabold">
+                        {m.provider ?? m.name}
+                      </h3>
+                      {m.provider && m.name !== m.provider && (
+                        <div className="truncate text-[11px] font-medium text-ink/80">
+                          {m.name}
+                        </div>
+                      )}
+                      <div className="mt-0.5 truncate text-[11px] text-muted">
+                        You own this ·{" "}
+                        {m.category.replace(/_/g, " ").toLowerCase()}
+                      </div>
+                    </div>
+                    <span
+                      className={`shrink-0 rounded-md px-2 py-1 text-[9px] font-extrabold uppercase tracking-wider ${
+                        isSharing
+                          ? "bg-teal-bg text-teal"
+                          : "bg-white/5 text-muted"
+                      }`}
+                    >
+                      {isSharing ? "Sharing" : "Off"}
                     </span>
                   </div>
-                  <Link
-                    href={`/memberships/${m.id}`}
-                    className="rounded-lg bg-white/10 px-3 py-1.5 text-[11px] font-bold hover:bg-white/20"
-                  >
-                    View →
-                  </Link>
-                </div>
-              </article>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </section>
-       <ExpiringSoon items={expiringItems} />
-      <ActivityFeed items={activityItems} />
- 
 
- 
-      {/* ─── YOUR SHAREPOOL ──────────────────────────────────── */}
-      <section>
-        <div className="mb-4">
-          <h2 className="text-lg font-extrabold tracking-tight">
-            Your SharePool
-          </h2>
-          <p className="mt-1 text-xs text-muted">
-            Keep track of your requests and shared services.
-          </p>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Link
-            href="/requests"
-            className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-gold/50"
-          >
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/5 text-lg">
-              📥
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold">My requests</div>
-              <div className="mt-0.5 text-[11px] text-muted">
-                Access you&apos;ve asked for
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-lg font-extrabold">{pendingReqCount}</div>
-              <div className="text-[9px] font-semibold uppercase tracking-wider text-muted">
-                active
-              </div>
-            </div>
-          </Link>
-
-          <Link
-            href="/memberships"
-            className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-gold/50"
-          >
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/5 text-lg">
-              📤
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold">My shares</div>
-              <div className="mt-0.5 text-[11px] text-muted">
-                Subscriptions you&apos;re sharing
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-lg font-extrabold">{mySharesCount}</div>
-              <div className="text-[9px] font-semibold uppercase tracking-wider text-muted">
-                active
-              </div>
-            </div>
-          </Link>
-
-          <Link
-            href="/memberships/new"
-            className="flex items-center gap-3 rounded-2xl border border-border bg-card p-4 transition-all hover:-translate-y-0.5 hover:border-gold/50"
-          >
-            <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/5 text-lg">
-              ＋
-            </div>
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-bold">Share a service</div>
-              <div className="mt-0.5 text-[11px] text-muted">
-                Offer an unused slot
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-lg font-extrabold text-gold">Add</div>
-            </div>
-          </Link>
-        </div>
-      </section>
-
-      {/* ─── HOW IT WORKS ────────────────────────────────────── */}
-      <section className="rounded-2xl border border-border bg-card p-6">
-        <div>
-          <h2 className="text-lg font-extrabold tracking-tight">
-            How SharePool works
-          </h2>
-          <p className="mt-1 text-xs text-muted">
-            Simple, private, and built around trusted connections.
-          </p>
-        </div>
-
-        <div className="mt-6 grid gap-5 sm:grid-cols-3">
-          {[
-            {
-              n: "01",
-              t: "Find",
-              d: "Discover subscriptions shared by people you trust.",
-            },
-            {
-              n: "02",
-              t: "Request",
-              d: "Ask for an available slot and wait for approval.",
-            },
-            {
-              n: "03",
-              t: "Share",
-              d: "Coordinate access and payments within your group.",
-            },
-          ].map((s) => (
-            <div key={s.n} className="flex gap-3">
-              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-white/5 text-[11px] font-extrabold text-gold">
-                {s.n}
-              </div>
-              <div>
-                <div className="text-xs font-extrabold">{s.t}</div>
-                <p className="mt-1 text-[11px] leading-relaxed text-muted">
-                  {s.d}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* EXPIRING SOON */}
+      <ExpiringSoon items={expiringItems} />
     </div>
   );
 }

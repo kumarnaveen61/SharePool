@@ -1,4 +1,6 @@
 import { db } from "@/lib/db";
+import { logActivity } from "@/lib/activity";
+import { z } from "zod";
 import {
   memberships,
   users,
@@ -109,5 +111,87 @@ export const GET = withErrorHandling(
       myPendingRequest,
       activeMembers: activeMembersRaw,
     });
+  }
+);
+
+
+const updateMembershipSchema = z.object({
+  name: z.string().trim().min(1).max(120).optional(),
+  category: z.enum([
+    "OTT",
+    "MUSIC",
+    "SHOPPING",
+    "FOOD_DELIVERY",
+    "PHARMACY",
+    "HEALTHCARE",
+    "TRAVEL",
+    "AIRPORT_LOUNGE",
+    "MOVIES",
+    "FITNESS",
+    "SOFTWARE",
+    "EDUCATION",
+    "HOTEL",
+    "CREDIT_CARD_BENEFITS",
+    "OTHER",
+  ]).optional(),
+  provider: z.string().trim().max(120).optional(),
+  planName: z.string().trim().max(120).optional(),
+  description: z.string().trim().max(1000).optional(),
+  sharingEligibility: z
+    .enum([
+      "OFFICIALLY_SHAREABLE",
+      "OWNER_ASSISTED",
+      "TRANSFERABLE_BENEFIT",
+      "NOT_SHAREABLE",
+    ])
+    .optional(),
+});
+
+export const PATCH = withErrorHandling(
+  async (req: Request, ctx: { params: Promise<{ id: string }> }) => {
+    const session = await requireUser();
+    const { id } = await ctx.params;
+
+    const [membership] = await db
+      .select()
+      .from(memberships)
+      .where(eq(memberships.id, id))
+      .limit(1);
+
+    if (!membership) {
+      return fail("NOT_FOUND", "Membership not found.", 404);
+    }
+
+    if (membership.ownerId !== session.userId) {
+      return fail(
+        "NOT_OWNER",
+        "Only the owner can edit this membership.",
+        403
+      );
+    }
+
+    const body = await req.json();
+    const data = updateMembershipSchema.parse(body);
+
+    if (Object.keys(data).length === 0) {
+      return fail("NOTHING_TO_UPDATE", "No fields provided.", 400);
+    }
+
+    const [updated] = await db
+      .update(memberships)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(memberships.id, id))
+      .returning();
+
+    await logActivity({
+      groupId: membership.groupId,
+      actorId: session.userId,
+      action: "MEMBERSHIP_UPDATED",
+      entityType: "membership",
+      entityId: membership.id,
+      metadata: { name: updated.name },
+    });
+
+    return ok({ membership: updated });
   }
 );

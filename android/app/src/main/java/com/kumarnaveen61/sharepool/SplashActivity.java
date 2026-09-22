@@ -1,4 +1,4 @@
-package com.kumarnaveen61.sharepool;
+﻿package com.kumarnaveen61.sharepool;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
@@ -20,14 +20,14 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
-        // Start the animated rings
+        // 1) Start the animated rings immediately
         ImageView rings = findViewById(R.id.splashRings);
         if (rings.getDrawable() instanceof AnimatedVectorDrawable) {
             AnimatedVectorDrawable avd = (AnimatedVectorDrawable) rings.getDrawable();
             avd.start();
         }
 
-        // Wordmark zooms in at 3.8s
+        // 2) Wordmark zooms in at 3.8s
         final TextView wordmark = findViewById(R.id.splashWordmark);
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
@@ -45,7 +45,7 @@ public class SplashActivity extends AppCompatActivity {
             }
         }, 3800);
 
-        // Tagline fades in at 4.5s
+        // 3) Tagline fades in at 4.5s
         final TextView tagline = findViewById(R.id.splashTagline);
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
@@ -57,7 +57,7 @@ public class SplashActivity extends AppCompatActivity {
             }
         }, 4500);
 
-        // Launch MainActivity at 5.5s
+        // 4) Launch MainActivity at 5.5s
         new Handler(Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {

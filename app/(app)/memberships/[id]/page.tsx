@@ -1,5 +1,6 @@
 "use client";
 
+import { EditMembershipForm } from "@/components/membership/EditMembershipForm";
 import { ApprovedMembers, type ActiveMember } from "@/components/membership/ApprovedMembers";
 import { CredentialForm } from "@/components/credentials/CredentialForm";
 import { useEffect, useState } from "react";
@@ -384,6 +385,19 @@ export default function MembershipDetailPage() {
 
   return (
     <div className="mx-auto max-w-lg space-y-5">
+            {isOwner && (
+        <EditMembershipForm
+          membership={{
+            id: membership.id,
+            name: membership.name,
+            category: membership.category,
+            provider: membership.provider,
+            planName: membership.planName,
+            description: membership.description,
+            sharingEligibility: membership.sharingEligibility,
+          }}
+        />
+      )}
       {/* ── Main card ─────────────────────────────────────── */}
       <div className="overflow-hidden rounded-3xl border border-border bg-card">
         {/* Header */}

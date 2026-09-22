@@ -7,7 +7,7 @@ type OwnedMembership = {
   id: string;
   name: string;
   category: string;
-  provider: string | null;   ← make sure this is here
+  provider: string | null;
   status: string;
   maxUsers: number;
   activeCount: number;
@@ -114,7 +114,14 @@ export function AccessTabs({
                       {initialsFor(m.provider ?? m.name)}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="truncate text-sm font-bold">{m.name}</div>
+                     <div className="truncate text-sm font-extrabold">
+                        {m.provider ?? m.name}
+                      </div>
+                      {m.provider && m.name !== m.provider && (
+                        <div className="truncate text-[11px] font-medium text-ink/80">
+                          {m.name}
+                        </div>
+                      )}
                       <div className="mt-0.5 truncate text-[11px] text-muted">
                         You own this · {m.activeCount}/{m.maxUsers} members
                       </div>
