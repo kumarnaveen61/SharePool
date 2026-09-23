@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { RevealCredential } from "@/components/credentials/RevealCredential";
 
 type OwnedMembership = {
   id: string;
@@ -152,7 +153,7 @@ export function AccessTabs({
               <h3 className="mt-4 text-sm font-extrabold">No active access</h3>
               <p className="mx-auto mt-2 max-w-xs text-xs text-muted">
                 When someone approves your request, their subscription will
-                show up here.
+                show up here with revealable access.
               </p>
               <Link
                 href="/memberships"
@@ -162,28 +163,41 @@ export function AccessTabs({
               </Link>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-4">
               {using.map((s) => (
-                <Link
-                  key={s.sessionId}
-                  href={`/memberships/${s.membershipId}`}
-                  className="flex items-center gap-3 rounded-2xl border border-teal/25 bg-teal-bg/30 p-4 transition-colors hover:border-teal/50"
-                >
-                  <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-teal/25 bg-teal/10 text-sm font-extrabold text-teal">
-                    {initialsFor(s.provider ?? s.membershipName)}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-sm font-bold">
-                      {s.membershipName}
+                <div key={s.sessionId} className="space-y-3">
+                  {/* Header */}
+                  <div className="flex items-center gap-3">
+                    <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-teal/25 bg-teal/10 text-sm font-extrabold text-teal">
+                      {initialsFor(s.provider ?? s.membershipName)}
                     </div>
-                    <div className="mt-0.5 truncate text-[11px] text-muted">
-                      from <span className="font-semibold text-ink">{s.ownerName}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-extrabold">
+                        {s.provider ?? s.membershipName}
+                      </div>
+                      {s.provider && s.membershipName !== s.provider && (
+                        <div className="truncate text-[11px] font-medium text-ink/80">
+                          {s.membershipName}
+                        </div>
+                      )}
+                      <div className="mt-0.5 truncate text-[11px] text-muted">
+                        from{" "}
+                        <span className="font-semibold text-ink">
+                          {s.ownerName}
+                        </span>
+                      </div>
                     </div>
+                    <span className="shrink-0 rounded-md bg-teal-bg px-2 py-1 text-[10px] font-bold text-teal">
+                      {timeLabel(s.endTime, s.units)}
+                    </span>
                   </div>
-                  <span className="shrink-0 rounded-md bg-teal-bg px-2 py-1 text-[10px] font-bold text-teal">
-                    {timeLabel(s.endTime, s.units)}
-                  </span>
-                </Link>
+
+                  {/* Reveal panel */}
+                  <RevealCredential
+                    membershipId={s.membershipId}
+                    provider={s.provider}
+                  />
+                </div>
               ))}
             </div>
           )}

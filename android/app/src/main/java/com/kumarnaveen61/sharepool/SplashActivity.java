@@ -1,4 +1,4 @@
-﻿package com.kumarnaveen61.sharepool;
+package com.kumarnaveen61.sharepool;
 
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
